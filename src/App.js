@@ -1,15 +1,31 @@
 import React, { Component } from 'react';
 
 import Map from './components/Map';
+import ToolsScreen from './components/ToolsScreen';
 
 import './App.css';
 
+const styles = {
+  screen: {
+    width: '50%',
+    flexGrow: '1'
+  },
+  root: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignContent: 'space-between'
+  }
+};
+
 class App extends Component {
-  render() {
+  render () {
     return (
-      <div className="App">
-        <div style={{width: '50%'}}>
+      <div style={styles.root}>
+        <div style={styles.screen}>
           <Map/>
+        </div>
+        <div style={styles.screen}>
+          <ToolsScreen/>
         </div>
       </div>
     );
