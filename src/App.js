@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import Map from './components/Map';
+import Map from './containers/MapContainer';
 import ToolsScreen from './components/ToolsScreen';
 
 import './App.css';

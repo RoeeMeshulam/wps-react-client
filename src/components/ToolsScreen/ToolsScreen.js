@@ -33,7 +33,6 @@ export default class ToolsScreen extends React.Component {
   }
 
   getDescribeCallback (response) {
-    console.log(response);
     this.setState({response});
   }
 

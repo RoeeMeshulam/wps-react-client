@@ -1,0 +1,26 @@
+.add-button {
+    border: 0;
+    border-radius: 0.25rem;
+    background: #e7e7e7;
+    color: black;
+    font-family: system-ui, sans-serif;
+    font-size: 1rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    text-decoration: none;
+    padding: 0.7rem 0.7rem;
+    margin: 0.5rem 0.5rem;
+    cursor: pointer;
+    width: 16%;
+    height: 100%;
+}
+
+.url-input {
+    width: 80%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}

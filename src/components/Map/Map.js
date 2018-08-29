@@ -1,7 +1,8 @@
 import React from 'react';
-import { Map as LeafletMap, TileLayer } from 'react-leaflet';
+import PropTypes from 'prop-types';
+import { Map as LeafletMap, TileLayer, GeoJSON } from 'react-leaflet';
 
-export default class Map extends React.Component {
+class MapComponent extends React.Component {
   constructor () {
     super();
 
@@ -33,14 +34,24 @@ export default class Map extends React.Component {
     const position = [this.state.lat, this.state.lng];
     return (
       <div style={{margin: '2.5%'}}>
-        <LeafletMap center={position}
-                    zoom={this.state.zoom}
-                    style={{height: `${this.state.height}px`}}>
+        <LeafletMap
+          center={position}
+          zoom={this.state.zoom}
+          style={{height: `${this.state.height}px`}}
+        >
           <TileLayer
             url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
           />
+          {this.props.layers.map(layer => <GeoJSON data={layer.data}/>)}
         </LeafletMap>
       </div>
     );
   }
 }
+
+MapComponent.propTypes = {
+  layers: PropTypes.array.isRequired,
+  removeLayer: PropTypes.func.isRequired,
+};
+
+export default MapComponent;
