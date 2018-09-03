@@ -33,6 +33,7 @@ class LayerInput extends React.Component {
           placeholder="Enter a layer URL"
           value={this.state.urlValue}
           onChange={this.handleChange}
+          onBlur={this.props.onBlur}
         />
         <button
           type="button"
@@ -46,6 +47,7 @@ class LayerInput extends React.Component {
 
 LayerInput.propTypes = {
   addLayer: PropTypes.func.isRequired,
+  onBlur: PropTypes.func
 };
 
 export default LayerInput;
