@@ -2245,13 +2245,12 @@ var BaseRequest = Class.extend({
 				/*
 				 * error handling, return textStatus and errorThrown as new
 				 * object
-				 */console.log(1);console.log(jqXHR, textStatus, errorThrown)
-				 console.log(2)
+				 */
+
 				var errorResponse = {
 					textStatus : textStatus,
 					errorThrown : errorThrown
 				}
-				console.log(self.callback)
 				
 				/*
 				 * if a callback function has been defined, then call it with
@@ -2259,11 +2258,7 @@ var BaseRequest = Class.extend({
 				 */
 				if (self.callback) {
 					self.callback(errorResponse);
-
-					console.log(4)
 				}
-
-				console.log(5)
 				
 			}
 		}, requestSettings);
