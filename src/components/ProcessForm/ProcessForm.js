@@ -52,7 +52,7 @@ class ProcessForm extends React.Component {
                          input.identifier)}
                        type="text"/>}
           </div>)}
-        <button type="submit" onClick={() => handleOnSubmit(this.inputValues)}>
+        <button type="button" onClick={() => handleOnSubmit(this.inputValues)}>
           Execute
         </button>
       </form>
