@@ -12,14 +12,6 @@ The palatforms we are aiming for are:
 
 Over the desktop applications (ArcMap, QGIS) the view and WPS client will be using embed web view and native connectors to the host app
 
-Architecture: 
+## Architecture: 
 
-![alt text](./GenericArchitecture.png "Generic Architecture")
-
-Web Architecture: 
-
-![alt text](./WebArchitecture.png "Web Architecture")
-
-Desktop Architecture: 
-
-![alt text](./DesktopArchitecture.png "Desktop Architecture")
+![alt text](./Architecture.png "Architecture")
