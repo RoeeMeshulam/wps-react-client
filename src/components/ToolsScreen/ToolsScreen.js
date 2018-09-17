@@ -1,17 +1,18 @@
-import React from 'react';
-import _ from 'lodash';
-import Select from 'react-select';
+import React from "react";
+import _ from "lodash";
+import Select from "react-select";
 
-import { pyWpsUrl, version } from '../../config';
-import ProcessForm from '../ProcessForm/ProcessForm';
+import { wpsServerUrl, version } from "../../config";
+import ProcessForm from "../ProcessForm";
+import { GetInputGenerator, CreateClientInstance, GetOutputGenerator } from "../../utils/wpsjs";
 
 export default class ToolsScreen extends React.Component {
-  constructor () {
+  constructor() {
     super();
 
     this.state = {
       processes: [],
-      processInputs: [],
+      processInputs: []
     };
 
     this.getCapabilitiesCallback = this.getCapabilitiesCallback.bind(this);
@@ -21,65 +22,78 @@ export default class ToolsScreen extends React.Component {
     this.handleExecuteResponse = this.handleExecuteResponse.bind(this);
   }
 
-  componentDidMount () {
-    this.wps = new window.WpsService({
-      url: pyWpsUrl,
-      version: version,
-    });
+  componentDidMount() {
+    this.wps = CreateClientInstance(wpsServerUrl, version);
 
     this.wps.getCapabilities_GET(this.getCapabilitiesCallback);
   }
 
-  getCapabilitiesCallback (response) {
+  getCapabilitiesCallback(response) {
     const capabilities = response.capabilities;
-    this.setState({processes: capabilities.processes});
+    this.setState({ processes: capabilities.processes });
   }
 
-  handleProcessChange (selected) {
+  handleProcessChange(selected) {
     this.wps.describeProcess_GET(this.getDescribeCallback, selected.value);
   }
 
-  getDescribeCallback (response) {
-    this.setState({selectedProcess: response.processOffering.process});
+  getDescribeCallback(response) {
+    this.setState({ selectedProcess: response.processOffering.process });
   }
 
-  handleExecuteProcess (inputs) {
-    const outputGenerator = new window.OutputGenerator();
+  handleExecuteProcess(inputs) {
+    const outputGenerator = GetOutputGenerator();
     const outputs = [];
     const output = this.state.selectedProcess.outputs[0];
-    if (output.hasOwnProperty('complexData')) {
-      const geoJsonOutputIndex = _.findIndex(output.complexData.formats,
-        ['mimeType', 'application/vnd.geo+json']);
+    if (output.hasOwnProperty("complexData")) {
+      const geoJsonOutputIndex = _.findIndex(output.complexData.formats, [
+        "mimeType",
+        "application/vnd.geo+json"
+      ]);
       const geoJsonOutput = output.complexData.formats[geoJsonOutputIndex];
       outputs.push(
-        outputGenerator.createComplexOutput_WPS_2_0(output.identifier,
-          geoJsonOutput.mimeType, geoJsonOutput.schema, geoJsonOutput.encoding,
-          'value'));
-    } else if (output.hasOwnProperty('literalData')) {
-
+        outputGenerator.createComplexOutput_WPS_1_0(
+          output.identifier,
+          geoJsonOutput.mimeType,
+          geoJsonOutput.schema,
+          geoJsonOutput.encoding,
+          "value"
+        )
+      );
+    } else if (output.hasOwnProperty("literalData")) {
     }
-    this.wps.execute(this.handleExecuteResponse,
-      this.state.selectedProcess.identifier, 'document', 'sync', false, inputs,
-      outputs);
+    this.wps.execute(
+      this.handleExecuteResponse,
+      this.state.selectedProcess.identifier,
+      "document",
+      "sync",
+      false,
+      inputs,
+      outputs
+    );
   }
 
-  handleExecuteResponse (value) {
+  handleExecuteResponse(value) {
     console.log(value);
   }
 
-  render () {
-    const {processes, selectedProcess} = this.state;
+  render() {
+    const { processes, selectedProcess } = this.state;
     return (
-      <div style={{margin: '2.5%'}}>
-        <Select onChange={this.handleProcessChange}
-                options={processes.map(process => ({
-                  value: process.identifier,
-                  label: process.identifier,
-                }))}/>
-        {selectedProcess
-          ? <ProcessForm inputs={selectedProcess.inputs}
-                         handleOnSubmit={this.handleExecuteProcess}/>
-          : null}
+      <div style={{ margin: "2.5%" }}>
+        <Select
+          onChange={this.handleProcessChange}
+          options={processes.map(process => ({
+            value: process.identifier,
+            label: process.identifier
+          }))}
+        />
+        {selectedProcess ? (
+          <ProcessForm
+            inputs={selectedProcess.inputs}
+            handleOnSubmit={this.handleExecuteProcess}
+          />
+        ) : null}
       </div>
     );
   }
