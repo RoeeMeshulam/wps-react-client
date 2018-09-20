@@ -24,6 +24,7 @@ class ProcessForm extends React.Component {
     const newInput = this.inputGenerator.createComplexDataInput_wps_1_0_and_2_0(
       identifier, MIME_TYPE, undefined, undefined, true, value);
     this.inputValues.push(newInput);
+    this.props.addLayer('614', event.target.value, 'LAyerName');
   }
 
   handleAddLiteralData (identifier, event) {
@@ -32,6 +33,7 @@ class ProcessForm extends React.Component {
     const newInput = this.inputGenerator.createLiteralDataInput_wps_1_0_and_2_0(
       identifier, undefined, undefined, value);
     this.inputValues.push(newInput);
+    this.props.addLayer('614', event.target.value, 'LAyerName');
   }
 
   render () {

@@ -6,8 +6,8 @@ import { pyWpsUrl, version } from '../../config';
 import ProcessForm from '../ProcessForm/ProcessForm';
 
 export default class ToolsScreen extends React.Component {
-  constructor () {
-    super();
+  constructor (props) {
+    super(props);
 
     this.state = {
       processes: [],
@@ -78,7 +78,8 @@ export default class ToolsScreen extends React.Component {
                 }))}/>
         {selectedProcess
           ? <ProcessForm inputs={selectedProcess.inputs}
-                         handleOnSubmit={this.handleExecuteProcess}/>
+                         handleOnSubmit={this.handleExecuteProcess}
+                         addLayer={this.props.addLayer}/>
           : null}
       </div>
     );

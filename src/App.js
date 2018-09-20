@@ -7,15 +7,23 @@ import Layers from './components/Layers';
 import './App.css';
 
 class App extends Component {
+  constructor(){
+    super();
+
+    this.state = {
+      addLayer: () => this.layers.addLayer,
+    }
+  }
+
   render() {
     return (
       <div className='root'>
         <div className='screen'>
-          <Layers/>
+          <Layers onRef = {ref => (this.layers = ref)}/>
           <Map/>
         </div>
         <div className='screen'>
-          <ToolsScreen />
+          <ToolsScreen addLayer={this.state.addLayer}/>
         </div>
       </div>
     );
