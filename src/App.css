@@ -26,3 +26,14 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+.screen{
+  width: 50%;
+  flex-grow: 1;
+}
+
+.root {
+  display: flex;
+  flex-direction: row;
+  align-content: space-between;
+}
