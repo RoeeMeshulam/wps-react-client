@@ -7,7 +7,7 @@ export default class Layers extends Component {
         super(props);
 
         this.state = {
-            layersList: {},
+            layersList: [],
         }
 
         this.getLayersList = this.getLayersList.bind(this);
