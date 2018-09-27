@@ -7,8 +7,13 @@ import ProcessForm from "../ProcessForm";
 import { GetInputGenerator, CreateClientInstance, GetOutputGenerator } from "../../utils/wpsjs";
 
 export default class ToolsScreen extends React.Component {
+<<<<<<< HEAD
   constructor() {
     super();
+=======
+  constructor (props) {
+    super(props);
+>>>>>>> LayersWindow
 
     this.state = {
       processes: [],
@@ -80,6 +85,7 @@ export default class ToolsScreen extends React.Component {
   render() {
     const { processes, selectedProcess } = this.state;
     return (
+<<<<<<< HEAD
       <div style={{ margin: "2.5%" }}>
         <Select
           onChange={this.handleProcessChange}
@@ -94,6 +100,19 @@ export default class ToolsScreen extends React.Component {
             handleOnSubmit={this.handleExecuteProcess}
           />
         ) : null}
+=======
+      <div style={{margin: '2.5%'}}>
+        <Select onChange={this.handleProcessChange}
+                options={processes.map(process => ({
+                  value: process.identifier,
+                  label: process.identifier,
+                }))}/>
+        {selectedProcess
+          ? <ProcessForm inputs={selectedProcess.inputs}
+                         handleOnSubmit={this.handleExecuteProcess}
+                         addLayer={this.props.addLayer}/>
+          : null}
+>>>>>>> LayersWindow
       </div>
     );
   }

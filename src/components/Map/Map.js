@@ -17,7 +17,7 @@ class MapComponent extends React.Component {
   }
 
   updateDimensions () {
-    const height = window.innerHeight * 0.95;
+    const height = window.innerHeight;
     this.setState({height: height});
   }
 
@@ -33,7 +33,7 @@ class MapComponent extends React.Component {
   render () {
     const position = [this.state.lat, this.state.lng];
     return (
-      <div style={{margin: '2.5%'}}>
+      <div>
         <LeafletMap
           center={position}
           zoom={this.state.zoom}

@@ -2,30 +2,28 @@ import React, { Component } from 'react';
 
 import Map from './containers/MapContainer';
 import ToolsScreen from './components/ToolsScreen';
+import Layers from './components/Layers';
 
 import './App.css';
 
-const styles = {
-  screen: {
-    width: '50%',
-    flexGrow: '1'
-  },
-  root: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignContent: 'space-between'
-  }
-};
-
 class App extends Component {
-  render () {
+  constructor(){
+    super();
+
+    this.state = {
+      addLayer: () => this.layers.addLayer,
+    }
+  }
+
+  render() {
     return (
-      <div style={styles.root}>
-        <div style={styles.screen}>
+      <div className='root'>
+        <div className='screen'>
+          <Layers onRef = {ref => (this.layers = ref)}/>
           <Map/>
         </div>
-        <div style={styles.screen}>
-          <ToolsScreen/>
+        <div className='screen'>
+          <ToolsScreen addLayer={this.state.addLayer}/>
         </div>
       </div>
     );
