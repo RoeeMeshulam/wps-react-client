@@ -1,15 +1,14 @@
 import React from "react";
-import _ from "lodash";
 import Select from "react-select";
 
-import { pyWpsUrl, version } from "../../config";
-import ProcessForm from "../ProcessForm/ProcessForm";
 import { wpsServerUrl, version } from "../../config";
 import ProcessForm from "../ProcessForm";
-import { GetInputGenerator, CreateClientInstance, GetOutputGenerator } from "../../utils/wpsjs";
+import { CreateClientInstance } from "../../utils/wpsjs";
 
 export default class ToolsScreen extends React.Component {
   constructor (props) {
+    super(props)
+
     this.state = {
       processes: [],
       processInputs: []
