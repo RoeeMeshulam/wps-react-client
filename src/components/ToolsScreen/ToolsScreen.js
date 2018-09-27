@@ -2,19 +2,14 @@ import React from "react";
 import _ from "lodash";
 import Select from "react-select";
 
+import { pyWpsUrl, version } from "../../config";
+import ProcessForm from "../ProcessForm/ProcessForm";
 import { wpsServerUrl, version } from "../../config";
 import ProcessForm from "../ProcessForm";
 import { GetInputGenerator, CreateClientInstance, GetOutputGenerator } from "../../utils/wpsjs";
 
 export default class ToolsScreen extends React.Component {
-<<<<<<< HEAD
-  constructor() {
-    super();
-=======
   constructor (props) {
-    super(props);
->>>>>>> LayersWindow
-
     this.state = {
       processes: [],
       processInputs: []
@@ -29,7 +24,6 @@ export default class ToolsScreen extends React.Component {
 
   componentDidMount() {
     this.wps = CreateClientInstance(wpsServerUrl, version);
-
     this.wps.getCapabilities_GET(this.getCapabilitiesCallback);
   }
 
@@ -46,27 +40,38 @@ export default class ToolsScreen extends React.Component {
     this.setState({ selectedProcess: response.processOffering.process });
   }
 
+  getPotentialLayers() {
+    return [
+      {
+        displayName: "MapBox markers GeoJSON",
+        id: 234,
+        url: "http://api.tiles.mapbox.com/v3/mapbox.o11ipb8h/markers.geojson"
+      }
+    ];
+  }
+
   handleExecuteProcess(inputs) {
-    const outputGenerator = GetOutputGenerator();
-    const outputs = [];
-    const output = this.state.selectedProcess.outputs[0];
-    if (output.hasOwnProperty("complexData")) {
-      const geoJsonOutputIndex = _.findIndex(output.complexData.formats, [
-        "mimeType",
-        "application/vnd.geo+json"
-      ]);
-      const geoJsonOutput = output.complexData.formats[geoJsonOutputIndex];
-      outputs.push(
-        outputGenerator.createComplexOutput_WPS_1_0(
+    const outputGenerator = new window.OutputGenerator();
+    // const outputs = [];
+    const outputs = this.state.selectedProcess.outputs.map(output => {
+      if (output.hasOwnProperty("complexData")) {
+        let geoJsonOutput = output.complexData.formats.filter(format => format.mimeType === "application/vnd.geo+json")[0]
+        if(!geoJsonOutput){
+          console.log(`application/vnd.geo+json output not found for ${output.identifier}`) // todo handle more gracefuly
+          geoJsonOutput = output.complexData.formats[0];
+        }
+
+        return outputGenerator.createComplexOutput_WPS_1_0(
           output.identifier,
           geoJsonOutput.mimeType,
           geoJsonOutput.schema,
           geoJsonOutput.encoding,
           "value"
-        )
-      );
-    } else if (output.hasOwnProperty("literalData")) {
-    }
+        );
+      } else if (output.hasOwnProperty("literalData")) {
+        // todo handle
+      }
+    });
     this.wps.execute(
       this.handleExecuteResponse,
       this.state.selectedProcess.identifier,
@@ -85,7 +90,6 @@ export default class ToolsScreen extends React.Component {
   render() {
     const { processes, selectedProcess } = this.state;
     return (
-<<<<<<< HEAD
       <div style={{ margin: "2.5%" }}>
         <Select
           onChange={this.handleProcessChange}
@@ -96,23 +100,11 @@ export default class ToolsScreen extends React.Component {
         />
         {selectedProcess ? (
           <ProcessForm
+            layers={this.getPotentialLayers()}
             inputs={selectedProcess.inputs}
             handleOnSubmit={this.handleExecuteProcess}
           />
         ) : null}
-=======
-      <div style={{margin: '2.5%'}}>
-        <Select onChange={this.handleProcessChange}
-                options={processes.map(process => ({
-                  value: process.identifier,
-                  label: process.identifier,
-                }))}/>
-        {selectedProcess
-          ? <ProcessForm inputs={selectedProcess.inputs}
-                         handleOnSubmit={this.handleExecuteProcess}
-                         addLayer={this.props.addLayer}/>
-          : null}
->>>>>>> LayersWindow
       </div>
     );
   }

@@ -1,53 +1,42 @@
-import * as React from 'react';
-import PropTypes from 'prop-types';
-import axios from 'axios';
+import * as React from "react";
+import PropTypes from "prop-types";
+import axios from "axios";
+import Select from "react-select";
 
-import './LayerInput.css';
+import "./LayerInput.css";
 
 class LayerInput extends React.Component {
-  constructor (props) {
+  constructor(props) {
+    console.log(props);
     super(props);
 
     this.state = {
-      urlValue: '',
+      urlValue: ""
     };
 
-    this.handleChange = this.handleChange.bind(this);
-    this.handleClick = this.handleClick.bind(this);
+    this.handleSelect = this.handleSelect.bind(this);
   }
 
-  handleChange (event) {
-    this.setState({urlValue: event.target.value});
+  handleSelect({ value }) {
+    this.props.addLayer(value);
   }
 
-  handleClick () {
-    axios.get(this.state.urlValue).then(res => this.props.addLayer('Input layer', res.data))
-  }
-
-  render () {
+  render() {
     return (
-      <div>
-        <input
-          type="text"
-          className="url-input"
-          placeholder="Enter a layer URL"
-          value={this.state.urlValue}
-          onChange={this.handleChange}
-          onBlur={this.props.onBlur}
-        />
-        <button
-          type="button"
-          className="add-button"
-          onClick={this.handleClick}
-        >Add Layer</button>
-      </div>
+      <Select
+        onChange={this.handleSelect}
+        options={this.props.layers.map(layer => ({
+          value: layer.id,
+          label: layer.displayName
+        }))}
+      />
     );
   }
 }
 
 LayerInput.propTypes = {
   addLayer: PropTypes.func.isRequired,
-  onBlur: PropTypes.func
+  onSelect: PropTypes.func
 };
 
 export default LayerInput;
