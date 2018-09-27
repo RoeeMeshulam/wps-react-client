@@ -4,11 +4,12 @@ import Select from "react-select";
 
 import { pyWpsUrl, version } from "../../config";
 import ProcessForm from "../ProcessForm/ProcessForm";
+import { wpsServerUrl, version } from "../../config";
+import ProcessForm from "../ProcessForm";
+import { GetInputGenerator, CreateClientInstance, GetOutputGenerator } from "../../utils/wpsjs";
 
 export default class ToolsScreen extends React.Component {
-  constructor(props) {
-    super(props);
-
+  constructor (props) {
     this.state = {
       processes: [],
       processInputs: []
@@ -22,11 +23,7 @@ export default class ToolsScreen extends React.Component {
   }
 
   componentDidMount() {
-    this.wps = new window.WpsService({
-      url: pyWpsUrl,
-      version: version
-    });
-
+    this.wps = CreateClientInstance(wpsServerUrl, version);
     this.wps.getCapabilities_GET(this.getCapabilitiesCallback);
   }
 
