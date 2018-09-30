@@ -1,6 +1,5 @@
 import * as React from "react";
 import PropTypes from "prop-types";
-import axios from "axios";
 import Select from "react-select";
 
 import "./LayerInput.css";
@@ -18,7 +17,7 @@ class LayerInput extends React.Component {
   }
 
   handleSelect({ value }) {
-    this.props.addLayer(value);
+    this.props.onSelect(value, this.props.id);
   }
 
   render() {
@@ -35,7 +34,6 @@ class LayerInput extends React.Component {
 }
 
 LayerInput.propTypes = {
-  addLayer: PropTypes.func.isRequired,
   onSelect: PropTypes.func
 };
 

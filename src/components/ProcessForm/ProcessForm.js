@@ -1,16 +1,16 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import _ from 'lodash';
+import React from "react";
+import PropTypes from "prop-types";
+import _ from "lodash";
+import Input from "./Input";
+import { InputTypes } from "./ProcessFormUtils";
 
-import LayerInput from '../LayerInput';
+import LayerInput from "../LayerInput";
 // import LayerInput from '../../containers/LayerInputContainer'; todo remove LayerInputContainer
 
-import './ProcessForm.css';
-
-const MIME_TYPE = 'application/vnd.geo+json';
+import "./ProcessForm.css";
 
 class ProcessForm extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props);
 
     this.inputValues = [];
@@ -19,44 +19,63 @@ class ProcessForm extends React.Component {
     this.inputGenerator = new window.InputGenerator();
   }
 
-  handleAddComplexData (identifier, value) {
-    // const value = event.target.value;
-    _.pullAllBy(this.inputValues, [{'identifier': identifier}], 'identifier');
-    const newInput = this.inputGenerator.createComplexDataInput_wps_1_0_and_2_0(
-      identifier, MIME_TYPE, undefined, undefined, true, value);
-    this.inputValues.push(newInput);
-    // this.props.addLayer('614', event.target.value, 'LAyerName');
+  handleAddComplexData(layerId, i) {
+    const values = layerId !== undefined ? [layerId] : [];
+
+    const identifier = this.props.inputs[i].id;
+    let inputs = this.props.inputs.map(
+      input =>
+        input.id === identifier
+          ? Object.assign(new Input(), input, { values: [layerId] })
+          : input
+    );
+
+    this.props.onChange(inputs);
   }
 
-  handleAddLiteralData (identifier, event) {
+  handleAddLiteralData(event) {
+    const i = parseInt(event.currentTarget.id.replace("form-input-", ""));
+    const identifier = this.props.inputs[i].id;
     const value = event.target.value;
-    _.pullAllBy(this.inputValues, [{'identifier': identifier}], 'identifier');
-    const newInput = this.inputGenerator.createLiteralDataInput_wps_1_0_and_2_0(
-      identifier, undefined, undefined, value);
-    this.inputValues.push(newInput);
-    // this.props.addLayer('614', event.target.value, 'LAyerName');
+
+    const values = value ? [value] : [];
+    let inputs = this.props.inputs.map(
+      input =>
+        input.id === identifier
+          ? Object.assign(new Input(), input, { values })
+          : input
+    );
+
+    this.props.onChange(inputs);
   }
 
-  render () {
-    const {inputs, handleOnSubmit} = this.props;
+  render() {
+    const { inputs, handleOnSubmit } = this.props;
     return (
       <form>
-        {inputs.map(input =>
+        {inputs.map((formInput, i) => (
           <div>
-            <h3>{input.title}</h3>
-            <p>{input.abstractValue}</p>
-            {input.hasOwnProperty('complexData')
-              ? <LayerInput
+            <h3>{formInput.title}</h3>
+            <p>{formInput.abstractValue}</p>
+            {formInput.type === InputTypes.COMPLEX ? (
+              <LayerInput
                 layers={this.props.layers}
-                key={input.identifier}
-                addLayer={this.handleAddComplexData.bind(null,
-                  input.identifier)}/>
-              : <input key={input.identifier}
-                       onBlur={this.handleAddLiteralData.bind(null,
-                         input.identifier)}
-                       type="text"/>}
-          </div>)}
-        <button type="button" onClick={() => handleOnSubmit(this.inputValues)}>
+                key={i}
+                id={i}
+                onSelect={this.handleAddComplexData}
+              />
+            ) : (
+              <input
+                key={formInput.identifier}
+                onChange={this.handleAddLiteralData}
+                value={formInput.values[0]}
+                id={`form-input-${i}`}
+                type="text"
+              />
+            )}
+          </div>
+        ))}
+        <button type="button" onClick={this.props.onSubmit}>
           Execute
         </button>
       </form>
@@ -66,7 +85,7 @@ class ProcessForm extends React.Component {
 
 ProcessForm.propTypes = {
   inputs: PropTypes.array.isRequired,
-  handleOnSubmit: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired
 };
 
-export default  ProcessForm;
+export default ProcessForm;
