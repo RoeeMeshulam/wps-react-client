@@ -7,15 +7,16 @@ export default class Layers extends Component {
         super(props);
 
         this.state = {
-            layersList: [],
-        }
+            layersList: []
+        };
 
         this.getLayersList = this.getLayersList.bind(this);
         this.addLayer = this.addLayer.bind(this);
     }
 
     componentDidMount() {
-        this.props.onRef(this)
+        this.props.onRef(this);
+        this.getLayersList();
     }
 
     componentWillUnmount() {
@@ -23,14 +24,16 @@ export default class Layers extends Component {
     }
 
     getLayersList() {
-        this.setState({ layersList: localStorage.getItem('LayersList') });
-        return localStorage.getItem('LayersList');
+        let layersList = JSON.parse(localStorage.getItem('LayersList'));
+        console.log(localStorage.getItem('LayersList'));
+        this.setState({ layersList: layersList});
+        return layersList;
     }
 
     addLayer(id, url, name){
-        //access.post(url)
-        localStorage.setItem('LayersList', JSON.stringify({ id, url, name }));
-        this.setState({ layersList: localStorage.getItem('LayersList') });
+        this.getLayersList();
+        this.setState( {layersList: this.state.layersList.concat({ id:'404', url:'http://www.google.com', name:'saranga' })});
+        localStorage.setItem('LayersList', JSON.stringify(this.state.layersList));
     }
 
     getLayerData() {
@@ -40,8 +43,19 @@ export default class Layers extends Component {
     render() {
         return (
             <div className='layers'>
-                <p>{this.state.layersList[0]}</p>
+                <button onClick={this.addLayer}>add layer</button>
+                { this.state.layersList.map( layer => <p>{layer.id}</p>)}
             </div>
         );
     }
 }
+
+/*this.state.layersList[0]?
+<div>
+<p>{this.state.layersList[0].id}</p>
+<p>{this.state.layersList[0].url}</p>
+<p>{this.state.layersList[0].name}</p>
+</div>
+: null*/
+
+//('614','http://www.google.com','saranga')
