@@ -19,11 +19,11 @@ class App extends Component {
   render() {
     return (
       <div className="root">
-        <div className="screen">
+        <div className="screen-left">
           <Layers onRef={ref => (this.layers = ref)} />
           <Map />
         </div>
-        <div className="screen">
+        <div className="screen-right">
           <ToolsScreen
             addLayer={this.state.addLayer}
             setQueryHistory={setQueryHistory}

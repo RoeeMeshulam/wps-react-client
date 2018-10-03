@@ -8,6 +8,7 @@ import LayerInput from "../LayerInput";
 // import LayerInput from '../../containers/LayerInputContainer'; todo remove LayerInputContainer
 
 import "./ProcessForm.css";
+import { TextIcon, LayersIcon } from "../Icons/Icons";
 
 class ProcessForm extends React.Component {
   constructor(props) {
@@ -50,32 +51,41 @@ class ProcessForm extends React.Component {
   }
 
   render() {
-    const { inputs, handleOnSubmit } = this.props;
+    const { inputs, layers, onSubmit } = this.props;
     return (
-      <form>
+      <form className="process-form">
         {inputs.map((formInput, i) => (
           <div>
             <h3>{formInput.title}</h3>
             <p>{formInput.abstractValue}</p>
             {formInput.type === InputTypes.COMPLEX ? (
-              <LayerInput
-                layers={this.props.layers}
-                key={i}
-                id={i}
-                onSelect={this.handleAddComplexData}
-              />
+              <div>
+                <LayersIcon className="process-form-icon" />
+                <LayerInput
+                  className="layer-select"
+                  layers={layers}
+                  key={i}
+                  id={i}
+                  value={formInput.values[0]}
+                  onSelect={this.handleAddComplexData}
+                />
+              </div>
             ) : (
-              <input
-                key={formInput.identifier}
-                onChange={this.handleAddLiteralData}
-                value={formInput.values[0]}
-                id={`form-input-${i}`}
-                type="text"
-              />
+              <div>
+                <TextIcon className="process-form-icon" />
+                <input
+                  className="literal-text-input"
+                  key={formInput.identifier}
+                  onChange={this.handleAddLiteralData}
+                  value={formInput.values[0]}
+                  id={`form-input-${i}`}
+                  type="text"
+                />
+              </div>
             )}
           </div>
         ))}
-        <button type="button" onClick={this.props.onSubmit}>
+        <button type="button" className="execute-button" onClick={onSubmit}>
           Execute
         </button>
       </form>

@@ -61,10 +61,7 @@ export default class QueryHistory extends React.Component {
                 {moment(a.timestamp).fromNow()}
               </span>
             </div>
-            <h4>{`${a.inputs.length} inputs, ${a.outputs.length} output`}</h4>
-            <span className="request-time">
-              {moment(a.timestamp).fromNow()}
-            </span>
+            <p className="content">{`${a.inputs.length} inputs, ${0} output`}</p>
           </div>
         ))}
       </div>

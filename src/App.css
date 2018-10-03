@@ -23,13 +23,25 @@
 }
 
 @keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.screen{
-  width: 50%;
+.screen-left,
+.screen-right {
+  position: relative;
   flex-grow: 1;
+}
+
+.screen-left{
+  width: 65%
+}
+.screen-right{
+  width: 35%
 }
 
 .root {

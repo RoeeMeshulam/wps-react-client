@@ -8,16 +8,13 @@ import { wpsServerUrl, version } from "../../config";
 import ProcessForm from "../ProcessForm";
 import {
   CreateClientInstance,
-  GetOutputGenerator,
-  GenerateComplexInput,
-  GenerateLiteralInput,
-  GetCapabilies
+  GetCapabilies,
+  DescribeProcess,
+  ExecuteProcess
 } from "../../utils/wpsjs";
 import { Statuses, QueryRecord } from "./QueryRecord";
-import {
-  generateInputsFromDescription,
-  InputTypes
-} from "../ProcessForm/ProcessFormUtils";
+import { generateInputsFromDescription } from "../ProcessForm/ProcessFormUtils";
+import ResultsPanel from "../ResultsPanel";
 
 export default class ToolsScreen extends React.Component {
   constructor(props) {
@@ -26,12 +23,13 @@ export default class ToolsScreen extends React.Component {
     this.state = {
       processes: [],
       history: this.fetchHistory(),
-      isLoading: false
+      isLoading: false,
+      selectedProcessId: null
     };
 
     this.handleProcessChange = this.handleProcessChange.bind(this);
     this.handleExecuteProcess = this.handleExecuteProcess.bind(this);
-    this.handleExecuteResponse = this.handleExecuteResponse.bind(this);
+    this.getLayerData = this.getLayerData.bind(this);
 
     this.getQueryHistory = this.getQueryHistory.bind(this);
     this.setQueryHistory = this.setQueryHistory.bind(this);
@@ -43,99 +41,93 @@ export default class ToolsScreen extends React.Component {
     if (this.state.isLoading) return Promise.reject("Error: Already Loading");
 
     this.setState({ isLoading: true, processes: [] });
-    return GetCapabilies(this.wps).then(capabilities => {
-      this.setState({
-        processes: capabilities.processes,
-        isLoading: false
+    return GetCapabilies(this.wps)
+      .then(capabilities => {
+        const processes = capabilities.processes.map(process => ({
+          value: process.identifier,
+          label: process.title || process.identifier
+        }));
+        this.setState({
+          processes,
+          isLoading: false
+        });
+      })
+      .catch(err => {
+        this.setState({ isLoading: false }); // todo handle error text
+        throw err;
       });
-    });
+  }
+
+  loadProcess(identifier) {
+    if (this.state.isLoading) return Promise.reject("Error: Already Loading");
+
+    this.setState({ isLoading: true, currentProcessData: null });
+
+    return DescribeProcess(this.wps, identifier)
+      .then(process => {
+        const formContent = generateInputsFromDescription(process);
+        this.setState({
+          isLoading: false,
+          currentProcessData: process,
+          formContent
+        });
+      })
+      .catch(err => {
+        this.setState({ isLoading: false }); // todo handle error text
+        throw err;
+      });
   }
 
   componentDidMount() {
     this.wps = CreateClientInstance(wpsServerUrl, version);
     this.loadCapabilies();
+    // todo Catch and message error + try again button
   }
 
   handleProcessChange(selected) {
-    this.wps.describeProcess_GET(response => {
-      const { process } = response.processOffering;
-      const formContent = generateInputsFromDescription(process);
-      this.setState({
-        selectedProcess: process,
-        formContent
-      });
-    }, selected.value);
+    this.setState({ selectedProcessId: selected.value });
+    this.loadProcess(selected.value);
+    // todo Catch and message error + try again button
   }
 
-  getDescribeCallback(identifier, formContent) {
-    this.wps.describeProcess_GET(response => {
-      const { process } = response.processOffering;
-      this.setState({
-        selectedProcess: process,
-        formContent
-      });
-    }, identifier);
-  }
+  handleExecuteProcess() {
+    let { formContent, isLoading, currentProcessData } = this.state;
 
-  handleExecuteProcess(inputs) {
-    let { formContent } = this.state;
-    const outputGenerator = new GetOutputGenerator();
-    // const outputs = [];
-    const outputs = this.state.selectedProcess.outputs.map(output => {
-      if (output.hasOwnProperty("complexData")) {
-        let geoJsonOutput = output.complexData.formats.filter(
-          format => format.mimeType === "application/vnd.geo+json"
-        )[0];
-        if (!geoJsonOutput) {
-          console.log(
-            `application/vnd.geo+json output not found for ${output.identifier}`
-          ); // todo handle more gracefuly
-          geoJsonOutput = output.complexData.formats[0];
-        }
-
-        return outputGenerator.createComplexOutput_WPS_1_0(
-          output.identifier,
-          geoJsonOutput.mimeType,
-          geoJsonOutput.schema,
-          geoJsonOutput.encoding,
-          "value"
-        );
-      } else if (output.hasOwnProperty("literalData")) {
-        // todo handle
-      }
-    });
+    if (isLoading) return;
 
     const record = new QueryRecord(
       this.wps.settings.url,
-      this.state.selectedProcess.identifier,
-      this.state.selectedProcess.title,
+      this.state.currentProcessData.identifier,
+      this.state.currentProcessData.title,
       formContent,
-      outputs,
+      null, //outputs,
       Statuses.RUNNING
     );
     this.addQuery(record);
 
-    // Array of arrays of WPS inputs
-    const inputsByIdentifier = formContent.map(input =>
-      input.values.map(
-        value =>
-          input.type === InputTypes.COMPLEX
-            ? GenerateComplexInput(input.id, this.getLayerData(value))
-            : GenerateLiteralInput(input.id, value)
+    const { queryId } = record;
+    
+    this.setState({ isLoading: true })
+
+    ExecuteProcess(
+      this.wps,
+      formContent,
+      currentProcessData,
+      this.getLayerData,
+      "application/vnd.geo+json"
+    )
+      .then(
+        response => {
+          const {outputs} = response.responseDocument;
+          console.log(response.responseDocument);
+          this.setState({outputs})
+          this.setQueryStatus(queryId, Statuses.SUCCESS);
+        },
+        err => {
+          this.setQueryStatus(queryId, Statuses.FAIL);
+        }
       )
-    );
-
-    const flatInputs = Array.prototype.concat.apply([], inputsByIdentifier);
-
-    this.wps.execute(
-      this.handleExecuteResponse.bind(null, record.queryId),
-      this.state.selectedProcess.identifier,
-      "document",
-      "sync",
-      false,
-      flatInputs,
-      outputs
-    );
+      .then(() => this.setState({ isLoading: false }));
   }
 
   onFormChange(formContent) {
@@ -146,30 +138,32 @@ export default class ToolsScreen extends React.Component {
    * @param {QueryRecord} queryRecord
    */
   setQueryAsForm(queryRecord) {
-    this.getDescribeCallback(queryRecord.precessIdentifier, queryRecord.inputs);
-  }
-
-  handleExecuteResponse(queryId, response) {
-    if (response.hasOwnProperty("errorThrown")) {
-      this.setQueryStatus(queryId, Statuses.FAIL);
-    } else {
-      this.setQueryStatus(queryId, Statuses.SUCCESS);
-    }
+    this.setState({ selectedProcessId: queryRecord.precessIdentifier });
+    this.loadProcess(queryRecord.precessIdentifier).then(() => {
+      this.setState({
+        formContent: queryRecord.inputs
+      });
+    });
   }
 
   render() {
-    const { processes, selectedProcess, formContent, isLoading } = this.state;
+    const {
+      processes,
+      selectedProcessId,
+      currentProcessData,
+      formContent,
+      isLoading,
+      outputs
+    } = this.state;
     return (
       <div className="wps-tools">
         <Select
+          value={processes.filter(p => p.value == selectedProcessId)[0]}
           onChange={this.handleProcessChange}
-          options={processes.map(process => ({
-            value: process.identifier,
-            label: process.title || process.identifier
-          }))}
+          options={processes}
         />
         {isLoading ? <div className="loader" /> : null}
-        {selectedProcess && !isLoading ? (
+        {currentProcessData && !isLoading ? (
           <ProcessForm
             inputs={formContent}
             layers={this.getAllLayers()}
@@ -181,6 +175,7 @@ export default class ToolsScreen extends React.Component {
           history={this.state.history}
           onClick={this.setQueryAsForm}
         />
+        {outputs ? <ResultsPanel outputs={outputs} /> : null}
       </div>
     );
   }
@@ -251,6 +246,12 @@ export default class ToolsScreen extends React.Component {
         displayName: "MapBox markers GeoJSON",
         id: 234,
         url: "http://api.tiles.mapbox.com/v3/mapbox.o11ipb8h/markers.geojson"
+      },
+      {
+        displayName: "github New York example",
+        id: 21,
+        url:
+          "https://raw.githubusercontent.com/ebrelsford/geojson-examples/master/596acres-02-18-2014.geojson"
       }
     ];
   }

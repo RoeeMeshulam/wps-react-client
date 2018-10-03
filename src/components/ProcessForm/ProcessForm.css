@@ -1,9 +1,42 @@
-input[type=text]{
-    width: 80%;
-    padding: 12px 20px;
-    margin: 8px 0;
-    display: inline-block;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
+.process-form {
+  position: absolute;
+  left: 0;
+  right: 0;
+  overflow-y: auto;
+  padding: 0 12px;
+  max-height: calc(65% - 51px);
+}
+.process-form .literal-text-input {
+  width: 80%;
+  padding: 12px 20px;
+  margin: 8px 10px;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  width: calc(100% - 55px);
+}
+
+.process-form .execute-button {
+  font-weight: bold;
+  margin-top: 12px;
+  background-color: #3b5998;
+  font-size: 15px;
+  color: white;
+  border: 0;
+  width: 100%;
+  padding: 20px;
+  border-radius: 0px;
+}
+
+.process-form .process-form-icon {
+  width: 30px;
+  padding: 13px 0;
+  vertical-align: middle;
+}
+
+.process-form .layer-select {
+  display: inline-block;
+  width: calc(100% - 35px);
+  padding: 0 10px;
 }

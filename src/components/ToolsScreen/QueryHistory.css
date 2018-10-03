@@ -1,12 +1,18 @@
-/* .query-history {
-} */
+.query-history {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 35%;
+  bottom: 0;
+  overflow-y: auto;
+}
 
 .query-history .query-record {
+  font-size: 12px;
   padding: 5px 18px;
   background-color: #eee;
-  margin: 7px 12px;
+  margin: 1px 12px;
   transition: background-color 0.5s ease;
-  position: relative;
 }
 
 .query-history .query-record:hover {
@@ -14,9 +20,13 @@
 }
 
 .query-history .query-record .request-time {
-  position: absolute;
-  right: 25px;
-  top: 20px;
+  float: right;
+  margin: 5px;
+}
+
+.query-history .query-record .content {
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
 }
 
 .query-history .query-record .status-tag {
