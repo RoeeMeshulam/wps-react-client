@@ -2,9 +2,6 @@ import * as React from "react";
 import PropTypes from "prop-types";
 import Select from "react-select";
 
-import "./LayerInput.css";
-import { LayersIcon } from "../Icons/Icons";
-
 class LayerInput extends React.Component {
   constructor(props) {
     super(props);
@@ -24,15 +21,12 @@ class LayerInput extends React.Component {
       label: layer.displayName
     }));
     return (
-      // <div>
-      //  <LayersIcon className="layer-icon" />
       <Select
         className={className}
         value={selectableLayers.filter(l => l.value === layerId)}
         onChange={this.handleSelect}
         options={selectableLayers}
       />
-      // </div>
     );
   }
 }
