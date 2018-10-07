@@ -15,6 +15,7 @@ import {
 import { Statuses, QueryRecord } from "./QueryRecord";
 import { generateInputsFromDescription } from "../ProcessForm/ProcessFormUtils";
 import ResultsPanel from "../ResultsPanel";
+import LoadingIndicator from "../LoadingIndicator";
 
 export default class ToolsScreen extends React.Component {
   constructor(props) {
@@ -158,11 +159,11 @@ export default class ToolsScreen extends React.Component {
     return (
       <div className="wps-tools">
         <Select
-          value={processes.filter(p => p.value == selectedProcessId)[0]}
+          value={processes.filter(p => p.value === selectedProcessId)[0]}
           onChange={this.handleProcessChange}
           options={processes}
         />
-        {isLoading ? <div className="loader" /> : null}
+        {isLoading ? <LoadingIndicator /> : null}
         {currentProcessData && !isLoading ? (
           <ProcessForm
             inputs={formContent}

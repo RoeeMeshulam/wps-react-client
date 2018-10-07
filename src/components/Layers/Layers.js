@@ -1,6 +1,9 @@
 import React, { Component } from "react";
 
 import "./Layers.css";
+import { UploadFromFiles, UploadFromUrl } from "./RemoteStorage";
+import { ConfirmIcon, UploadIcon } from "../Icons/Icons";
+import LoadingIndicator from "../LoadingIndicator";
 
 export default class Layers extends Component {
   constructor(props) {
@@ -10,8 +13,8 @@ export default class Layers extends Component {
       layersList: []
     };
 
-    this.fetchLayersList = this.fetchLayersList.bind(this);
-    this.addLayer = this.addLayer.bind(this);
+    this.uploadFiles = this.uploadFiles.bind(this);
+    this.chooseFiles = this.chooseFiles.bind(this);
   }
 
   componentDidMount() {
@@ -31,28 +34,74 @@ export default class Layers extends Component {
     } catch (err) {
       layersList = [];
     }
-    // console.log(localStorage.getItem('LayersList'));
     this.setState({ layersList: layersList });
   }
 
-  addLayer(id, url, name) {
-    this.fetchLayersList();
-    this.setState({
-      layersList: this.state.layersList.concat({
-        id: "404",
-        url: "http://www.google.com",
-        name: "saranga"
-      })
-    });
-    localStorage.setItem("LayersList", JSON.stringify(this.state.layersList));
+  updateLayersList(layersList) {
+    this.setState({ layersList });
+    localStorage.setItem("LayersList", JSON.stringify(layersList));
   }
 
-  getLayerData() {}
+  // addLayer(id, url, name) {
+  //   const layersList = this.state.layersList.concat({
+  //     id: "404",
+  //     url: "http://www.google.com",
+  //     name: "saranga"
+  //   });
+
+  //   this.setState({
+  //     layersList
+  //   });
+  //   localStorage.setItem("LayersList", JSON.stringify(this.state.layersList));
+  // }
+
+  addLayerFromUrl(url, name) {
+    UploadFromUrl(url).then(id => {
+      this.updateLayersList(this.state.layersList.concat({ id, name }));
+    });
+  }
+
+  chooseFiles() {
+    this.setState({ isChoosingFiles: true });
+  }
+
+  uploadFiles() {
+    this.setState({ isChoosingFiles: false, isUploading: true });
+    
+    const fileInputElement = document.getElementById("layersUpload");
+
+    UploadFromFiles(fileInputElement).then(layers => {
+      this.updateLayersList(this.state.layersList.concat(layers));
+      this.setState({isUploading: false});
+    });
+  }
 
   render() {
+    const { isChoosingFiles, isUploading } = this.state;
+
+    let UploadComponent;
+    if (isUploading) {
+      UploadComponent = <LoadingIndicator />;
+    } else if (isChoosingFiles) {
+      UploadComponent = (
+        <div>
+          <input id="layersUpload" type="file" name="files" multiple />
+          <div className="svg-button" onClick={this.uploadFiles}>
+            <ConfirmIcon />
+          </div>
+        </div>
+      );
+    } else {
+      UploadComponent = (
+        <div className="svg-button" onClick={this.chooseFiles}>
+          <UploadIcon />
+        </div>
+      );
+    }
+
     return (
       <div className="layers">
-        <button onClick={this.addLayer}>add layer</button>
+        {UploadComponent}
         {this.state.layersList.map(layer => (
           <p>{layer.id}</p>
         ))}

@@ -1,6 +1,5 @@
 import React from "react";
 import PropTypes from "prop-types";
-import _ from "lodash";
 import Input from "./Input";
 import { InputTypes } from "./ProcessFormUtils";
 
@@ -21,8 +20,6 @@ class ProcessForm extends React.Component {
   }
 
   handleAddComplexData(layerId, i) {
-    const values = layerId !== undefined ? [layerId] : [];
-
     const identifier = this.props.inputs[i].id;
     let inputs = this.props.inputs.map(
       input =>
@@ -37,7 +34,7 @@ class ProcessForm extends React.Component {
   handleAddLiteralData(event) {
     const i = parseInt(event.currentTarget.id.replace("form-input-", ""));
     const identifier = this.props.inputs[i].id;
-    const value = event.target.value;
+    const { value } = event.target;
 
     const values = value ? [value] : [];
     let inputs = this.props.inputs.map(

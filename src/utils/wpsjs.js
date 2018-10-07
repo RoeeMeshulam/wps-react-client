@@ -103,6 +103,7 @@ export function ExecuteProcess(
           "value"
         );
       }
+      return null;
     });
 
     // Array of arrays of WPS inputs
@@ -126,9 +127,8 @@ export function ExecuteProcess(
       flatInputs,
       outputs
     );
-  })
-  .then(res => {
-    throwIfError(res)
-    return res.executeResponse
+  }).then(res => {
+    throwIfError(res);
+    return res.executeResponse;
   });
 }
