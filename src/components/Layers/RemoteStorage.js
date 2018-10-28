@@ -2,7 +2,11 @@ import axios from "axios";
 import { layerServerPath } from "../../config";
 
 export function GetLayerData(id) {
-  return axios.get(`${layerServerPath}/layer/${id}`);
+  return axios.get(GetLayerUrlFromId(id));
+}
+
+export function GetLayerUrlFromId(id) {
+  return `${layerServerPath}/layer/${id}`;
 }
 
 export function UploadFromUrl(url) {
@@ -24,5 +28,6 @@ export function UploadFromFiles(element) {
         "Content-Type": "multipart/form-data"
       }
     })
-    .then(res => res.data.ids);
+    .then(res => res.data.ids)
+    ;
 }

@@ -1,6 +1,6 @@
 import { connect } from 'react-redux';
 
-import LayerInput from '../../components/LayerInput';
+import LayerInput from '../../components/Layers';
 import { createAddLayerAction } from '../../action-creators/map';
 
 function mapDispatchToProps (dispatch) {

@@ -1,9 +1,16 @@
 import React, { Component } from "react";
 
 import "./Layers.css";
-import { UploadFromFiles, UploadFromUrl } from "./RemoteStorage";
+import {
+  UploadFromFiles,
+  UploadFromUrl,
+  GetLayerUrlFromId
+} from "./RemoteStorage";
 import { ConfirmIcon, UploadIcon } from "../Icons/Icons";
 import LoadingIndicator from "../LoadingIndicator";
+import Checkbox from "./checkbox";
+import axios from "axios";
+import Promise from "bluebird"
 
 export default class Layers extends Component {
   constructor(props) {
@@ -13,6 +20,7 @@ export default class Layers extends Component {
       layersList: []
     };
 
+    this.toggleLayer = this.toggleLayer.bind(this);
     this.uploadFiles = this.uploadFiles.bind(this);
     this.chooseFiles = this.chooseFiles.bind(this);
   }
@@ -34,30 +42,50 @@ export default class Layers extends Component {
     } catch (err) {
       layersList = [];
     }
+    layersList.forEach(layer => (layer.displayed = false));
     this.setState({ layersList: layersList });
   }
 
   updateLayersList(layersList) {
     this.setState({ layersList });
-    localStorage.setItem("LayersList", JSON.stringify(layersList));
+    localStorage.setItem(
+      "LayersList",
+      JSON.stringify(
+        layersList.map(({ name, id, url }) => ({
+          name,
+          id,
+          url
+        }))
+      )
+    );
   }
 
-  // addLayer(id, url, name) {
-  //   const layersList = this.state.layersList.concat({
-  //     id: "404",
-  //     url: "http://www.google.com",
-  //     name: "saranga"
-  //   });
+  toggleLayer(layerId) {
+    const layer = this.state.layersList.filter(
+      layer => layer.id === layerId
+    )[0];
+    const newLayer = { ...layer, displayed: !layer.displayed };
+    if (newLayer.displayed) {
+      axios
+        .get(layer.url) //, { transformResponse: [], responseType: "arraybuffer" }
+        // .then(({ data }) => {
+        //   return new TextDecoder("utf-8").decode(data)
+        // })
+        .then(({data})=> data)
+        .then(geojson => this.props.addLayer(layer.name, geojson));
+    }
 
-  //   this.setState({
-  //     layersList
-  //   });
-  //   localStorage.setItem("LayersList", JSON.stringify(this.state.layersList));
-  // }
+    const layersList = this.state.layersList.map(
+      layer => (layer.id === layerId ? newLayer : layer)
+    );
+    this.setState({ layersList });
+  }
 
   addLayerFromUrl(url, name) {
     UploadFromUrl(url).then(id => {
-      this.updateLayersList(this.state.layersList.concat({ id, name }));
+      this.updateLayersList(
+        this.state.layersList.concat({ id, name, url: GetLayerUrlFromId(id) })
+      );
     });
   }
 
@@ -67,13 +95,18 @@ export default class Layers extends Component {
 
   uploadFiles() {
     this.setState({ isChoosingFiles: false, isUploading: true });
-    
+
     const fileInputElement = document.getElementById("layersUpload");
 
-    UploadFromFiles(fileInputElement).then(layers => {
-      this.updateLayersList(this.state.layersList.concat(layers));
-      this.setState({isUploading: false});
-    });
+    UploadFromFiles(fileInputElement)
+      .then(layers =>
+        layers.map(({ id, name }) => ({ id, name, url: GetLayerUrlFromId(id) }))
+      )
+      .then(layers => {
+        this.updateLayersList(this.state.layersList.concat(layers));
+        this.setState({ isUploading: false });
+      })
+      .catch(() => this.setState({ isUploading: false }));
   }
 
   render() {
@@ -103,7 +136,14 @@ export default class Layers extends Component {
       <div className="layers">
         {UploadComponent}
         {this.state.layersList.map(layer => (
-          <p>{layer.id}</p>
+          <div className="layer" key={layer.id}>
+            <Checkbox
+              isDisplayed={layer.displayed}
+              onClick={this.toggleLayer}
+              identifier={layer.id}
+            />
+            <span>{layer.name}</span>
+          </div>
         ))}
       </div>
     );

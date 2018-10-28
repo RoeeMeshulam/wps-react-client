@@ -2,7 +2,7 @@ import React, { Component } from "react";
 
 import Map from "./containers/MapContainer";
 import ToolsScreen from "./components/ToolsScreen";
-import Layers from "./components/Layers";
+import Layers from "./containers/LayersContainer";
 
 import "./App.css";
 import { setQueryHistory, getQueryHistory } from "./utils/queryHistoryStorage";
