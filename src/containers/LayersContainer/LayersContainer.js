@@ -1,14 +1,21 @@
-import { connect } from 'react-redux';
+import { connect } from "react-redux";
 
-import LayerInput from '../../components/Layers';
-import { createAddLayerAction } from '../../action-creators/map';
+import LayerInput from "../../components/Layers";
+import {
+  createAddLayerAction,
+  createRemoveLayerAction
+} from "../../action-creators/map";
 
-function mapDispatchToProps (dispatch) {
+function mapDispatchToProps(dispatch) {
   return {
-    addLayer: (name, data) => dispatch(createAddLayerAction(name, data)),
+    addLayer: (id, data) => dispatch(createAddLayerAction(id, data)),
+    removeLayer: id => dispatch(createRemoveLayerAction(id))
   };
 }
 
-const LayerInputContainer = connect(null, mapDispatchToProps)(LayerInput);
+const LayerInputContainer = connect(
+  null,
+  mapDispatchToProps
+)(LayerInput);
 
 export default LayerInputContainer;

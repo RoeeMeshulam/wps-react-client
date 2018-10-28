@@ -1,20 +1,20 @@
 import { ADD_LAYER, REMOVE_LAYER } from '../action-types/map';
 
-export const createAddLayerAction = (name, data) => {
+export const createAddLayerAction = (id, data) => {
   return {
     type: ADD_LAYER,
     payload: {
-      name,
+      id,
       data,
     },
   };
 };
 
-export const createRemoveLayerAction = (name) => {
+export const createRemoveLayerAction = (id) => {
   return {
     type: REMOVE_LAYER,
     payload: {
-      name,
+      id,
     },
   };
 };

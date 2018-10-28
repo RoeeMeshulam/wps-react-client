@@ -72,7 +72,9 @@ export default class Layers extends Component {
         //   return new TextDecoder("utf-8").decode(data)
         // })
         .then(({data})=> data)
-        .then(geojson => this.props.addLayer(layer.name, geojson));
+        .then(geojson => this.props.addLayer(layer.id, geojson));
+    } else {
+      this.props.removeLayer(layer.id)
     }
 
     const layersList = this.state.layersList.map(

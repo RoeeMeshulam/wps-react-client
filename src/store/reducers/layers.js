@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import Immutable from 'immutable';
 
 import { ADD_LAYER, REMOVE_LAYER } from '../../action-types/map';
@@ -12,7 +11,7 @@ export default function (state = initialState, action) {
       newState = state.push(action.payload);
       break;
     case REMOVE_LAYER:
-      newState = _.pullAllBy(state, action.payload, 'name');
+      newState = state.filter(layer => action.payload.id !== layer.id )
       break;
     default:
       newState = state;
