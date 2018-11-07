@@ -1,10 +1,11 @@
 import React from "react";
 import Select from "react-select";
 import Promise from "bluebird";
+import { withAlert } from "react-alert";
 
 import QueryHistory from "./QueryHistory";
 import "./ToolsScreen.css";
-import { wpsServerUrl, version } from "../../config";
+import { wpsServerUrl, version, isGeoJsonMimeType } from "../../config";
 import ProcessForm from "../ProcessForm";
 import {
   CreateClientInstance,
@@ -16,8 +17,10 @@ import { Statuses, QueryRecord } from "./QueryRecord";
 import { generateInputsFromDescription } from "../ProcessForm/ProcessFormUtils";
 import ResultsPanel from "../ResultsPanel";
 import LoadingIndicator from "../LoadingIndicator";
+import { SettingsIcon } from "../Icons/Icons";
+import { Settings, GetWpsServerPath, SetWpsServerPath } from "./Settings";
 
-export default class ToolsScreen extends React.Component {
+class ToolsScreen extends React.Component {
   constructor(props) {
     super(props);
 
@@ -36,13 +39,22 @@ export default class ToolsScreen extends React.Component {
     this.setQueryHistory = this.setQueryHistory.bind(this);
     this.onFormChange = this.onFormChange.bind(this);
     this.setQueryAsForm = this.setQueryAsForm.bind(this);
+
+    this.zoomToLayer = this.zoomToLayer.bind(this);
+    this.addLayer = this.addLayer.bind(this);
+
+    this.toggleSettings = this.toggleSettings.bind(this);
+    this.settingsChanges = this.settingsChanges.bind(this);
   }
 
   loadCapabilies() {
-    if (this.state.isLoading) return Promise.reject("Error: Already Loading");
+    if (this.state.isLoading) {
+      this.props.alert.error("Error: Already loading processes list");
+      return;
+    }
 
     this.setState({ isLoading: true, processes: [] });
-    return GetCapabilies(this.wps)
+    GetCapabilies(this.wps)
       .then(capabilities => {
         const processes = capabilities.processes.map(process => ({
           value: process.identifier,
@@ -54,6 +66,9 @@ export default class ToolsScreen extends React.Component {
         });
       })
       .catch(err => {
+        this.props.alert.error(
+          "Failed to load processes. Please try again later."
+        );
         this.setState({ isLoading: false }); // todo handle error text
         throw err;
       });
@@ -62,7 +77,12 @@ export default class ToolsScreen extends React.Component {
   loadProcess(identifier) {
     if (this.state.isLoading) return Promise.reject("Error: Already Loading");
 
-    this.setState({ isLoading: true, currentProcessData: null });
+    this.setState({
+      outputs: null,
+      isHistoryOutputs: false,
+      isLoading: true,
+      currentProcessData: null
+    });
 
     return DescribeProcess(this.wps, identifier)
       .then(process => {
@@ -70,19 +90,29 @@ export default class ToolsScreen extends React.Component {
         this.setState({
           isLoading: false,
           currentProcessData: process,
+          processErrorMessage: null,
           formContent
         });
       })
       .catch(err => {
-        this.setState({ isLoading: false }); // todo handle error text
+        this.props.alert.error(
+          "Failed to load process. Please try again later."
+        );
+        this.setState({ isLoading: false });
         throw err;
       });
   }
 
   componentDidMount() {
-    this.wps = CreateClientInstance(wpsServerUrl, version);
+    let serverPath = GetWpsServerPath();
+    if (!serverPath) {
+      serverPath = wpsServerUrl;
+      SetWpsServerPath(serverPath);
+    }
+
+    this.wps = CreateClientInstance(serverPath, version);
     this.loadCapabilies();
-    // todo Catch and message error + try again button
+    // todo try again button
   }
 
   handleProcessChange(selected) {
@@ -92,7 +122,8 @@ export default class ToolsScreen extends React.Component {
   }
 
   handleExecuteProcess() {
-    let { formContent, isLoading, currentProcessData } = this.state;
+    const { formContent, isLoading, currentProcessData } = this.state;
+    const complexAsReference = !!this.props.complexAsReference;
 
     if (isLoading) return;
 
@@ -101,33 +132,68 @@ export default class ToolsScreen extends React.Component {
       this.state.currentProcessData.identifier,
       this.state.currentProcessData.title,
       formContent,
-      null, //outputs,
+      [],
       Statuses.RUNNING
     );
     this.addQuery(record);
 
     const { queryId } = record;
-    
-    this.setState({ isLoading: true })
+
+    this.setState({ isLoading: true });
 
     ExecuteProcess(
       this.wps,
       formContent,
       currentProcessData,
       this.getLayerData,
-      "application/vnd.geo+json"
+      isGeoJsonMimeType,
+      complexAsReference
     )
-      .then(
-        response => {
-          const {outputs} = response.responseDocument;
-          console.log(response.responseDocument);
-          this.setState({outputs})
-          this.setQueryStatus(queryId, Statuses.SUCCESS);
-        },
-        err => {
-          this.setQueryStatus(queryId, Statuses.FAIL);
-        }
-      )
+      .then(response => {
+        const layersForMap = [];
+        const outputs = [];
+
+        response.responseDocument.outputs.forEach(output => {
+          if (output.reference || output.data.complexData) {
+            layersForMap.push(output);
+          } else {
+            outputs.push({
+              name: output.title,
+              identifier: output.identifier,
+              literal: output.data.literalData.value
+            });
+          }
+        });
+
+        Promise.all(layersForMap.map(this.addLayer))
+          .then(ids => {
+            ids.forEach((id, i) => {
+              outputs.push({
+                name: layersForMap[i].title,
+                identifier: layersForMap[i].identifier,
+                layer: id
+              });
+            });
+
+            this.setQuery(queryId, {
+              status: Statuses.SUCCESS,
+              outputs,
+              isHistoryOutputs: false
+            });
+            this.setState({ outputs });
+          })
+          .catch(err => {
+            console.error("Failed to add one or some layers", err);
+            throw "Process succeeded but failed to add one or some layers";
+          });
+      })
+      .catch(err => {
+        this.setQuery(queryId, { status: Statuses.FAIL });
+        this.setState({ processErrorMessage: err });
+        this.props.alert.error(
+          `Failed in Process ${this.state.currentProcessData.title}`
+        );
+      })
       .then(() => this.setState({ isLoading: false }));
   }
 
@@ -142,9 +208,28 @@ export default class ToolsScreen extends React.Component {
     this.setState({ selectedProcessId: queryRecord.precessIdentifier });
     this.loadProcess(queryRecord.precessIdentifier).then(() => {
       this.setState({
-        formContent: queryRecord.inputs
+        formContent: queryRecord.inputs,
+        outputs: queryRecord.outputs,
+        isHistoryOutputs: true,
+        processErrorMessage: null
       });
     });
+  }
+
+  toggleSettings() {
+    let { settingsOpen } = this.state;
+    settingsOpen = !settingsOpen;
+    this.setState({ settingsOpen });
+
+    // Reload capabilities on settings close
+    if (!settingsOpen) {
+      this.loadCapabilies();
+    }
+  }
+
+  settingsChanges(settings) {
+    const { wpsServerPath } = settings;
+    this.wps = CreateClientInstance(wpsServerPath, version);
   }
 
   render() {
@@ -154,29 +239,60 @@ export default class ToolsScreen extends React.Component {
       currentProcessData,
       formContent,
       isLoading,
-      outputs
+      outputs,
+      processErrorMessage,
+      isHistoryOutputs,
+      settingsOpen
     } = this.state;
     return (
       <div className="wps-tools">
-        <Select
-          value={processes.filter(p => p.value === selectedProcessId)[0]}
-          onChange={this.handleProcessChange}
-          options={processes}
-        />
-        {isLoading ? <LoadingIndicator /> : null}
-        {currentProcessData && !isLoading ? (
-          <ProcessForm
-            inputs={formContent}
-            layers={this.getAllLayers()}
-            onChange={this.onFormChange}
-            onSubmit={this.handleExecuteProcess}
+        <div className="tools-header">
+          <Select
+            className="process-select"
+            isDisabled={isLoading}
+            value={processes.filter(p => p.value === selectedProcessId)[0]}
+            onChange={this.handleProcessChange}
+            options={processes}
           />
-        ) : null}
+          <div onClick={this.toggleSettings}>
+            <SettingsIcon
+              className={`settings-icon ${settingsOpen ? "active" : ""}`}
+            />
+          </div>
+        </div>
+        {isLoading ? <LoadingIndicator /> : null}
+        <div className="process-content">
+          {processErrorMessage && !isLoading ? (
+            <p className="process-error-message">
+              <strong>
+                Process have failed :( <br />
+                <br />
+                Error:{" "}
+              </strong>
+              {processErrorMessage}
+            </p>
+          ) : null}
+          {outputs && outputs.length > 0 && !isLoading ? (
+            <ResultsPanel
+              isHistoryOutputs={isHistoryOutputs}
+              outputs={outputs}
+              layerZoom={this.zoomToLayer}
+            />
+          ) : null}
+          {currentProcessData && !isLoading ? (
+            <ProcessForm
+              inputs={formContent}
+              layers={this.getAllLayers()}
+              onChange={this.onFormChange}
+              onSubmit={this.handleExecuteProcess}
+            />
+          ) : null}
+        </div>
         <QueryHistory
           history={this.state.history}
           onClick={this.setQueryAsForm}
         />
-        {outputs ? <ResultsPanel outputs={outputs} /> : null}
+        {settingsOpen ? <Settings onChange={this.settingsChanges} /> : null}
       </div>
     );
   }
@@ -185,11 +301,11 @@ export default class ToolsScreen extends React.Component {
    * @param {string} queryId
    * @param {number} status
    */
-  setQueryStatus(queryId, status) {
+  setQuery(queryId, record) {
     const history = this.state.history.map(
       rec =>
         rec.queryId === queryId
-          ? Object.assign(new QueryRecord(), rec, { status })
+          ? Object.assign(new QueryRecord(), rec, record)
           : rec
     );
 
@@ -235,26 +351,8 @@ export default class ToolsScreen extends React.Component {
     }
   }
 
-  //
-  //
-  //
-  // MOCK - should come as props
-  //
-
   getAllLayers() {
-    return [
-      {
-        displayName: "MapBox markers GeoJSON",
-        id: 234,
-        url: "http://api.tiles.mapbox.com/v3/mapbox.o11ipb8h/markers.geojson"
-      },
-      {
-        displayName: "github New York example",
-        id: 21,
-        url:
-          "https://raw.githubusercontent.com/ebrelsford/geojson-examples/master/596acres-02-18-2014.geojson"
-      }
-    ];
+    return this.props.getLayers();
   }
 
   getLayerData(id) {
@@ -262,7 +360,11 @@ export default class ToolsScreen extends React.Component {
   }
 
   addLayer(layer) {
-    console.log("added Layer", layer);
+    return this.props.addLayer(layer);
+  }
+
+  zoomToLayer(layerId) {
+    this.props.zoomToLayer(layerId);
   }
 
   /**
@@ -279,3 +381,5 @@ export default class ToolsScreen extends React.Component {
     return this.props.getQueryHistory();
   }
 }
+
+export default withAlert(ToolsScreen);

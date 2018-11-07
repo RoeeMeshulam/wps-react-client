@@ -1,3 +1,46 @@
-.wps-tools {
-  margin: 2.5%;
+.wps-tools .process-content{
+
+  left: 0;
+  right: 0;
+  overflow-y: auto;
+  position: absolute;
+  padding: 0 23px;
+  height: calc(65% - 51px);
+}
+
+.wps-tools .process-error-message {
+  background-color: #ff6a6a;
+  border-radius: 6px;
+  padding: 14px 32px;
+  color: white;
+  /* font-weight: bold; */
+}
+
+.wps-tools .tools-header {
+  padding: 10px;
+  position: relative;
+  height: 40px;
+}
+.wps-tools .tools-header .process-select {
+  position: absolute;
+  width: calc(100% - 50px);
+  height: 40px;
+}
+
+.wps-tools .settings-icon {
+  cursor: pointer;
+  right: 0;
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  box-sizing: border-box;
+  padding: 4px;
+  margin: 4px;
+
+  border-radius: 50%;
+}
+
+.wps-tools .settings-icon.active {
+  background-color: #333333;
+  fill: #bbb;
 }

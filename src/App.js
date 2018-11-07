@@ -11,9 +11,19 @@ class App extends Component {
   constructor() {
     super();
 
-    this.state = {
-      addLayer: () => this.layers.addLayer
-    };
+    this.addLayer = this.addLayer.bind(this);
+    this.zoomToLayer = this.zoomToLayer.bind(this);
+    this.getLayers = this.getLayers.bind(this);
+  }
+
+  getLayers(layer) {
+    return this.layers.getLayers(layer);
+  }
+  addLayer(layer) {
+    return this.layers.addLayerFromWpsResponse(layer);
+  }
+  zoomToLayer(layer) {
+    this.layers.zoomToLayer(layer);
   }
 
   render() {
@@ -25,9 +35,12 @@ class App extends Component {
         </div>
         <div className="screen-right">
           <ToolsScreen
-            addLayer={this.state.addLayer}
+            addLayer={this.addLayer}
             setQueryHistory={setQueryHistory}
             getQueryHistory={getQueryHistory}
+            zoomToLayer={this.zoomToLayer}
+            getLayers={this.getLayers}
+            complexAsReference
           />
         </div>
       </div>

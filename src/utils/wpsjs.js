@@ -5,13 +5,16 @@ if (!window.WpsService) {
   console.error("wpsjs Failed to load");
 }
 
-const MIME_TYPE = "application/vnd.geo+json";
 let inputGenerator = null;
 let outputGenerator = null;
 
-function throwIfError(res) {
-  if (res.hasOwnProperty("errorThrown")) {
-    throw res.errorThrown;
+function resolveResponse(response, fetchData) {
+  if (!response) {
+    return Promise.reject("Non-valid response");
+  } else if (response.hasOwnProperty("errorThrown")) {
+    return Promise.reject(response.errorThrown);
+  } else {
+    return Promise.resolve(fetchData(response));
   }
 }
 
@@ -29,13 +32,18 @@ export function GetOutputGenerator(url, version) {
   return outputGenerator;
 }
 
-export function GenerateComplexInput(identifier, value) {
+export function GenerateComplexInput(
+  identifier,
+  value,
+  mimetype,
+  complexAsReference
+) {
   return GetInputGenerator().createComplexDataInput_wps_1_0_and_2_0(
     identifier,
-    MIME_TYPE,
+    mimetype,
     undefined,
     undefined,
-    true,
+    complexAsReference,
     value
   );
 }
@@ -51,20 +59,16 @@ export function GenerateLiteralInput(identifier, value) {
 
 export function GetCapabilies(wpsInstance) {
   return new Promise(resolve => {
-    wpsInstance.getCapabilities_GET(res => {
-      throwIfError(res);
-      resolve(res.capabilities);
-    });
-  });
+    wpsInstance.getCapabilities_GET(resolve);
+  }).then(res => resolveResponse(res, res => res.capabilities));
 }
 
 export function DescribeProcess(wpsInstance, identifier) {
-  return new Promise(resolve => {
-    wpsInstance.describeProcess_GET(res => {
-      throwIfError(res);
-      resolve(res.processOffering.process);
-    }, identifier);
-  });
+  return new Promise(resolve =>
+    wpsInstance.describeProcess_GET(resolve, identifier)
+  ).then(response =>
+    resolveResponse(response, response => response.processOffering.process)
+  );
 }
 
 export function ExecuteProcess(
@@ -72,22 +76,21 @@ export function ExecuteProcess(
   inputs,
   processDescription,
   layerFromIdFetcher,
-  mimetype
+  layerMimeTypeProdicate,
+  complexAsReference
 ) {
   return new Promise(resolve => {
     const { identifier } = processDescription;
     const outputGenerator = new GetOutputGenerator();
-    // const outputs = [];
     const outputs = processDescription.outputs.map(output => {
       if (output.hasOwnProperty("complexData")) {
-        let geoJsonOutput = output.complexData.formats.filter(
-          format => format.mimeType === mimetype
+        let geoJsonOutput = output.complexData.formats.filter(format =>
+          layerMimeTypeProdicate(format.mimeType)
         )[0];
         if (!geoJsonOutput) {
-          console.warn(
-            `application/vnd.geo+json output not found for ${output.identifier}`
-          ); // todo handle more gracefuly
-          geoJsonOutput = output.complexData.formats[0];
+          throw `Geographic mimetype output not found for output: ${
+            output.identifier
+          }`;
         }
 
         return outputGenerator.createComplexOutput_WPS_1_0(
@@ -95,7 +98,8 @@ export function ExecuteProcess(
           geoJsonOutput.mimeType,
           geoJsonOutput.schema,
           geoJsonOutput.encoding,
-          "value"
+          undefined,
+          complexAsReference
         );
       } else if (output.hasOwnProperty("literalData")) {
         return outputGenerator.createLiteralOutput_WPS_1_0(
@@ -103,17 +107,25 @@ export function ExecuteProcess(
           "value"
         );
       }
-       return null;
+      return null;
     });
-
+    
     // Array of arrays of WPS inputs
     const inputsByIdentifier = inputs.map(input =>
-      input.values.map(
-        value =>
-          input.type === InputTypes.COMPLEX
-            ? GenerateComplexInput(input.id, layerFromIdFetcher(value))
-            : GenerateLiteralInput(input.id, value)
-      )
+      input.values.map(value => {
+        if (input.type === InputTypes.COMPLEX) {
+          const format = input.formats.filter(f =>
+            layerMimeTypeProdicate(f.mimeType)
+          )[0];
+          if (!format) throw `No valid input mimetype for input: ${input.id}`;
+          return GenerateComplexInput(
+            input.id,
+            layerFromIdFetcher(value),
+            format.mimeType,
+            complexAsReference
+          );
+        } else return GenerateLiteralInput(input.id, value);
+      })
     );
 
     const flatInputs = Array.prototype.concat.apply([], inputsByIdentifier);
@@ -127,8 +139,7 @@ export function ExecuteProcess(
       flatInputs,
       outputs
     );
-  }).then(res => {
-    throwIfError(res);
-    return res.executeResponse;
+  }).then(response => {
+    return resolveResponse(response, response => response.executeResponse);
   });
 }

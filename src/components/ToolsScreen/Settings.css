@@ -1,0 +1,19 @@
+.settings-panel {
+  position: absolute;
+  z-index: 10;
+  left: 20px;
+  right: 20px;
+  padding: 6px;
+  background-color: #ddd;
+  border-radius: 5px;
+  border: 3px solid #dddddd7d;
+}
+
+.settings-panel input {
+    width: 100%;
+    box-sizing: border-box;
+    border: none;
+    border-radius: 4px;
+    margin-top: 7px;
+    padding: 6px;
+}

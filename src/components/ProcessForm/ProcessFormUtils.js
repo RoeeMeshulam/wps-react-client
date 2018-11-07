@@ -6,13 +6,20 @@ import Input from "./Input";
  */
 export function generateInputsFromDescription(process) {
   return process.inputs.map(input => {
-  const { abstractValue, title, identifier, minOccurs, maxOccurs } = input;
-  let type = input.hasOwnProperty("complexData")
-    ? InputTypes.COMPLEX
-    : InputTypes.LITERAL;
+    const { abstractValue, title, identifier, minOccurs, maxOccurs } = input;
+    const [type, formats] = input.hasOwnProperty("complexData")
+      ? [InputTypes.COMPLEX, input.complexData.formats]
+      : [InputTypes.LITERAL, undefined]
 
-  return new Input(identifier, type, title, abstractValue, minOccurs, maxOccurs);
-
+    return new Input(
+      identifier,
+      type,
+      title,
+      abstractValue,
+      minOccurs,
+      maxOccurs,
+      formats
+    );
   });
 }
 

@@ -1,16 +1,29 @@
-import React from 'react';
-import { render } from 'react-dom';
-import { Provider } from 'react-redux';
+import React from "react";
+import { render } from "react-dom";
+import { Provider } from "react-redux";
 
-import store from './store';
-import App from './App';
+import { Provider as AlertProvider } from "react-alert";
+import AlertTemplate from "react-alert-template-basic";
 
-import './index.css';
-import registerServiceWorker from './registerServiceWorker';
+import store from "./store";
+import App from "./App";
+
+import "./index.css";
+import registerServiceWorker from "./registerServiceWorker";
+
+const messageBoxOptions = {
+  timeout: 5000,
+  position: "bottom center",
+  zIndex: 1000
+};
 
 render(
-  <Provider store={store}>
-    <App />
-  </Provider>,
-  document.getElementById('root'));
+  <AlertProvider template={AlertTemplate} {...messageBoxOptions}>
+    <Provider store={store}>
+      <App />
+    </Provider>
+  </AlertProvider>,
+  document.getElementById("root")
+);
+
 registerServiceWorker();

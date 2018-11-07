@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Map as LeafletMap, TileLayer, GeoJSON } from 'react-leaflet';
+import L from 'leaflet'
+import { tileLayerTemplate } from '../../config';
 
 class MapComponent extends React.Component {
   constructor () {
@@ -30,6 +32,20 @@ class MapComponent extends React.Component {
     window.removeEventListener('resize', this.updateDimensions);
   }
 
+  pointToLayer(feature, latlng) {
+    // renders our GeoJSON points as circle markers, rather than Leaflet's default image markers
+    // parameters to style the GeoJSON markers
+    const markerParams = {
+      radius: 4,
+      fillColor: 'black',
+      color: '#fff',
+      weight: 0,
+      fillOpacity: 1
+    };
+
+    return L.circleMarker(latlng, markerParams);
+  }
+
   render () {
     const position = [this.state.lat, this.state.lng];
     return (
@@ -40,9 +56,9 @@ class MapComponent extends React.Component {
           style={{height: `${this.state.height}px`}}
         >
           <TileLayer
-            url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
+            url={tileLayerTemplate}
           />
-          {this.props.layers.map(layer => <GeoJSON data={layer.data}/>)}
+          {this.props.layers.map(layer => <GeoJSON data={layer.data} pointToLayer={this.pointToLayer} />)}
         </LeafletMap>
       </div>
     );

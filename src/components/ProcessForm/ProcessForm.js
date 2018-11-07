@@ -4,7 +4,6 @@ import Input from "./Input";
 import { InputTypes } from "./ProcessFormUtils";
 
 import LayerInput from "../LayerInput";
-// import LayerInput from '../../containers/LayerInputContainer'; todo remove LayerInputContainer
 
 import "./ProcessForm.css";
 import { TextIcon, LayersIcon } from "../Icons/Icons";

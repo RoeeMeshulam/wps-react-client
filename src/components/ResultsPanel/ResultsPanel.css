@@ -1,2 +1,23 @@
-#results-panel {
+.results-panel .history-results-comment{
+    font-size: 0.7em;
+    margin-left: 4px;
+}
+.results-panel .layer-logo {
+  height: 2em;
+  cursor: pointer;
+}
+.results-panel .results-item {
+  height: 30px;
+}
+
+.results-panel .item-title {
+  padding: 0.5em;
+  display: inline-block;
+  vertical-align: bottom;
+  font-weight: bold;
+}
+
+.results-panel .item-content.literal {
+  display: inline-block;
+  padding: 0.5em;
 }

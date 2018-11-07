@@ -1,6 +1,7 @@
 import { connect } from "react-redux";
+import { withAlert } from "react-alert";
 
-import LayerInput from "../../components/Layers";
+import Layers from "../../components/Layers";
 import {
   createAddLayerAction,
   createRemoveLayerAction
@@ -8,14 +9,16 @@ import {
 
 function mapDispatchToProps(dispatch) {
   return {
-    addLayer: (id, data) => dispatch(createAddLayerAction(id, data)),
-    removeLayer: id => dispatch(createRemoveLayerAction(id))
+    addLayerToMap: (id, data) => dispatch(createAddLayerAction(id, data)),
+    removeLayerFromMap: id => dispatch(createRemoveLayerAction(id))
   };
 }
 
-const LayerInputContainer = connect(
+const LayersReduxContainer = connect(
   null,
   mapDispatchToProps
-)(LayerInput);
+)(Layers);
 
-export default LayerInputContainer;
+const LayersReduxAlertContainer = withAlert(LayersReduxContainer);
+
+export default LayersReduxAlertContainer;

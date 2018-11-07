@@ -13,6 +13,7 @@
   background-color: #eee;
   margin: 1px 12px;
   transition: background-color 0.5s ease;
+  cursor: pointer;
 }
 
 .query-history .query-record:hover {

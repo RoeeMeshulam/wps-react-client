@@ -44,24 +44,27 @@ export default class QueryHistory extends React.Component {
     const statusDisplay = StatusDisplayMap[status] || StatusDisplayMap[Statuses.FAIL];
     return <span className="status-tag" style={{backgroundColor:statusDisplay.color}}>{statusDisplay.text}</span>
   }
+
+  numberToStr = number => number === 0 ? 'No' : `${number}`
+
   render() {
     return (
       <div className="query-history">
-        {this.props.history.map(a => (
+        {this.props.history.map(rec => (
           <div
-            key={a.queryId}
-            id={`query-record-${a.queryId}`}
+            key={rec.queryId}
+            id={`query-record-${rec.queryId}`}
             className="query-record"
             onClick={this.onRecordClick}
           >
             <div>
-              {this.getStatusTag(a.status)}
-              <span className="title">{a.title}</span>
+              {this.getStatusTag(rec.status)}
+              <span className="title">{rec.title}</span>
               <span className="request-time">
-                {moment(a.timestamp).fromNow()}
+                {moment(rec.timestamp).fromNow()}
               </span>
             </div>
-            <p className="content">{`${a.inputs.length} inputs, ${0} output`}</p>
+            <p className="content">{`${this.numberToStr(rec.inputs.length)} inputs, ${this.numberToStr(rec.outputs.length)} outputs`}</p>
           </div>
         ))}
       </div>

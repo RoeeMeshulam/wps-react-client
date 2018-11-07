@@ -8,15 +8,20 @@
   bottom: 17px;
   left: 17px;
   overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 0px 4px 25px #00000090;
 }
 
-.layers .svg-button {
-  height: 40px;
-  background-color: #3b5998;
-  width: 90%;
-  margin: 6px 5%;
-  padding: 4px 0;
-  border-radius: 3px;
+.layers .title {
+  margin: 10px 13px;
+}
+.layers .title span {
+  margin-left: 10px;
+}
+.layers .title .layers-icon {
+  fill: white;
+  height: 1.1em;
+  width: 1.1em;
 }
 
 .layers .svg-button svg {
@@ -26,15 +31,21 @@
   display: block;
 }
 
-.layers input[type=file] {
+.layers input[type="file"] {
   margin: 6px 18px;
 }
 
-.layers .layer svg{
+.layers .layer svg {
   fill: white;
   height: 1em;
   padding: 0 0.3em;
 }
-.layers .layer{
-  margin-top: 2px
+.layers .layer {
+  margin-top: 1px;
+  margin-bottom: 1px;
+  transition: background-color 0.5s ease;
+}
+.layers .layer.highlighted {
+  background-color: #bbb;
+  transition: background-color 0.1s ease;
 }
