@@ -2,8 +2,7 @@ import React, { Component } from "react";
 
 import "./Layers.css";
 import { UploadFromUrl, GetLayerUrlFromId } from "./RemoteStorage";
-import { ConfirmIcon, UploadIcon, LayersIcon } from "../Icons/Icons";
-import LoadingIndicator from "../LoadingIndicator";
+import { LayersIcon } from "../Icons/Icons";
 import Checkbox from "./checkbox";
 import axios from "axios";
 import UploadFile from "./UploadFile";
@@ -70,14 +69,20 @@ export default class Layers extends Component {
     }
   }
 
-  updateLayersList(layersList, idsToHighLight = []) {
-    this.setState({ layersList }, () =>
-      idsToHighLight.map(id => this.highlight(id))
+  concatLayers(layersToAdd) {
+    const nonExistingLayers = layersToAdd.filter(
+      ({ id }) => !this.layerExist(id)
     );
+    
+    this.setState(
+      { layersList: this.state.layersList.concat(nonExistingLayers) },
+    );
+
+    layersToAdd.map(({ id }) => this.highlight(id))
 
     localStorage.setItem(
       "LayersList",
-      JSON.stringify(layersList.map(({ name, id }) => ({ name, id })))
+      JSON.stringify(this.state.layersList.concat(nonExistingLayers).map(({ name, id }) => ({ name, id })))
     );
   }
 
@@ -96,10 +101,7 @@ export default class Layers extends Component {
     const newLayer = { ...layer, displayed: !layer.displayed };
     if (newLayer.displayed) {
       axios
-        .get(GetLayerUrlFromId(layer.id)) //, { transformResponse: [], responseType: "arraybuffer" }
-        // .then(({ data }) => {
-        //   return new TextDecoder("utf-8").decode(data)
-        // })
+        .get(GetLayerUrlFromId(layer.id))
         .then(({ data }) => data)
         .then(geojson => this.props.addLayerToMap(layer.id, geojson));
     } else {
@@ -119,25 +121,9 @@ export default class Layers extends Component {
   addLayerFromWpsResponse(layer) {
     const url = layer.reference.href;
     return UploadFromUrl(url).then(id => {
-      if (!this.layerExist(id)) {
-        this.updateLayersList(
-          this.state.layersList.concat({
-            id,
-            name: layer.title
-          }),
-          [id]
-        );
-      }
+      this.concatLayers([{ id, name: layer.title }]);
       return id;
     });
-  }
-
-  concatLayers(layers) {
-    const nonExistingLayers = layers.filter(({ id }) => !this.layerExist(id));
-    this.updateLayersList(
-      this.state.layersList.concat(nonExistingLayers),
-      layers.map(layer => layer.id)
-    );
   }
 
   render() {
