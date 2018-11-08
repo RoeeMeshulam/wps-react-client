@@ -51,7 +51,7 @@ class ProcessForm extends React.Component {
     return (
       <form className="process-form">
         {inputs.map((formInput, i) => (
-          <div>
+          <div key={`form-item-${i}`}>
             <h3>{formInput.title}</h3>
             <p>{formInput.abstractValue}</p>
             {formInput.type === InputTypes.COMPLEX ? (

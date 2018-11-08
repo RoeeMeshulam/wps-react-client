@@ -1,4 +1,4 @@
-import { queryHistoryStorageKey } from "../config";
+import { queryHistoryStorageKey } from "../../config";
 
 export function setQueryHistory(history) {
   localStorage.setItem(queryHistoryStorageKey, history);

@@ -73,16 +73,16 @@ export default class Layers extends Component {
     const nonExistingLayers = layersToAdd.filter(
       ({ id }) => !this.layerExist(id)
     );
-    
-    this.setState(
-      { layersList: this.state.layersList.concat(nonExistingLayers) },
-    );
 
-    layersToAdd.map(({ id }) => this.highlight(id))
+    const layersList = this.state.layersList.concat(nonExistingLayers);
+
+    this.setState({ layersList });
+
+    layersToAdd.map(({ id }) => this.highlight(id));
 
     localStorage.setItem(
       "LayersList",
-      JSON.stringify(this.state.layersList.concat(nonExistingLayers).map(({ name, id }) => ({ name, id })))
+      JSON.stringify(layersList.map(({ name, id }) => ({ name, id })))
     );
   }
 

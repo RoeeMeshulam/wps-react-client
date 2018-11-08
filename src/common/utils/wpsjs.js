@@ -1,5 +1,5 @@
 import Promise from "bluebird";
-import { InputTypes } from "../components/ProcessForm/ProcessFormUtils";
+import { InputTypes } from "../../components/ProcessForm/ProcessFormUtils";
 
 if (!window.WpsService) {
   console.error("wpsjs Failed to load");
@@ -10,9 +10,9 @@ let outputGenerator = null;
 
 function resolveResponse(response, fetchData) {
   if (!response) {
-    return Promise.reject("Non-valid response");
+    return Promise.reject(new Error("Non-valid response"));
   } else if (response.hasOwnProperty("errorThrown")) {
-    return Promise.reject(response.errorThrown);
+    return Promise.reject(new Error(response.errorThrown));
   } else {
     return Promise.resolve(fetchData(response));
   }
@@ -88,9 +88,11 @@ export function ExecuteProcess(
           layerMimeTypeProdicate(format.mimeType)
         )[0];
         if (!geoJsonOutput) {
-          throw `Geographic mimetype output not found for output: ${
-            output.identifier
-          }`;
+          throw new Error(
+            `Geographic mimetype output not found for output: ${
+              output.identifier
+            }`
+          );
         }
 
         return outputGenerator.createComplexOutput_WPS_1_0(
@@ -109,7 +111,7 @@ export function ExecuteProcess(
       }
       return null;
     });
-    
+
     // Array of arrays of WPS inputs
     const inputsByIdentifier = inputs.map(input =>
       input.values.map(value => {
@@ -117,7 +119,8 @@ export function ExecuteProcess(
           const format = input.formats.filter(f =>
             layerMimeTypeProdicate(f.mimeType)
           )[0];
-          if (!format) throw `No valid input mimetype for input: ${input.id}`;
+          if (!format)
+            throw new Error(`No valid input mimetype for input: ${input.id}`);
           return GenerateComplexInput(
             input.id,
             layerFromIdFetcher(value),

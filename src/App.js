@@ -5,7 +5,7 @@ import ToolsScreen from "./components/ToolsScreen";
 import Layers from "./containers/LayersContainer";
 
 import "./App.css";
-import { setQueryHistory, getQueryHistory } from "./utils/queryHistoryStorage";
+import { setQueryHistory, getQueryHistory } from "./common/utils/queryHistoryStorage";
 
 class App extends Component {
   constructor() {

@@ -12,7 +12,7 @@ import {
   GetCapabilies,
   DescribeProcess,
   ExecuteProcess
-} from "../../utils/wpsjs";
+} from "../../common/utils/wpsjs";
 import { Statuses, QueryRecord } from "./QueryRecord";
 import { generateInputsFromDescription } from "../ProcessForm/ProcessFormUtils";
 import ResultsPanel from "../ResultsPanel";
@@ -65,17 +65,17 @@ class ToolsScreen extends React.Component {
           isLoading: false
         });
       })
-      .catch(err => {
+      .catch(() => {
         this.props.alert.error(
           "Failed to load processes. Please try again later."
         );
         this.setState({ isLoading: false }); // todo handle error text
-        throw err;
       });
   }
 
   loadProcess(identifier) {
-    if (this.state.isLoading) return Promise.reject("Error: Already Loading");
+    if (this.state.isLoading)
+      return Promise.reject(new Error("Error: Already Loading"));
 
     this.setState({
       outputs: null,
@@ -184,12 +184,14 @@ class ToolsScreen extends React.Component {
           })
           .catch(err => {
             console.error("Failed to add one or some layers", err);
-            throw "Process succeeded but failed to add one or some layers";
+            throw new Error(
+              "Process succeeded but failed to add one or some layers"
+            );
           });
       })
       .catch(err => {
         this.setQuery(queryId, { status: Statuses.FAIL });
-        this.setState({ processErrorMessage: err });
+        this.setState({ processErrorMessage: err.message });
         this.props.alert.error(
           `Failed in Process ${this.state.currentProcessData.title}`
         );
@@ -206,14 +208,16 @@ class ToolsScreen extends React.Component {
    */
   setQueryAsForm(queryRecord) {
     this.setState({ selectedProcessId: queryRecord.precessIdentifier });
-    this.loadProcess(queryRecord.precessIdentifier).then(() => {
-      this.setState({
-        formContent: queryRecord.inputs,
-        outputs: queryRecord.outputs,
-        isHistoryOutputs: true,
-        processErrorMessage: null
-      });
-    });
+    this.loadProcess(queryRecord.precessIdentifier).then(
+      () =>
+        this.setState({
+          formContent: queryRecord.inputs,
+          outputs: queryRecord.outputs,
+          isHistoryOutputs: true,
+          processErrorMessage: null
+        }),
+      () => {}
+    );
   }
 
   toggleSettings() {
