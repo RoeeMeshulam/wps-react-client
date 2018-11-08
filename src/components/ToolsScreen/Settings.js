@@ -15,7 +15,7 @@ export class Settings extends React.Component {
 
     this.updateWpsServerPath = this.updateWpsServerPath.bind(this);
     this.state = {
-      wpsServerPath: null
+      wpsServerPath: ""
     };
   }
 
