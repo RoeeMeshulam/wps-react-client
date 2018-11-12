@@ -113,35 +113,37 @@ export function ExecuteProcess(
     });
 
     // Array of arrays of WPS inputs
+    // Denote: Some of data is promises, some is literal
     const inputsByIdentifier = inputs.map(input =>
       input.values.map(value => {
         if (input.type === InputTypes.COMPLEX) {
-          const format = input.formats.filter(f =>
-            layerMimeTypeProdicate(f.mimeType)
-          )[0];
-          if (!format)
-            throw new Error(`No valid input mimetype for input: ${input.id}`);
-          return GenerateComplexInput(
-            input.id,
-            layerFromIdFetcher(value),
-            format.mimeType,
-            complexAsReference
+          return Promise.resolve(value.getData()).then(data =>
+            GenerateComplexInput(
+              input.id,
+              data,
+              value.mimeType,
+              complexAsReference
+            )
           );
         } else return GenerateLiteralInput(input.id, value);
       })
     );
 
-    const flatInputs = Array.prototype.concat.apply([], inputsByIdentifier);
-
-    wpsInstance.execute(
-      resolve,
-      identifier,
-      "document",
-      "sync",
-      false,
-      flatInputs,
-      outputs
+    const flatInputsPromises   = Array.prototype.concat.apply(
+      [],
+      inputsByIdentifier
     );
+    Promise.all(flatInputsPromises).then(flatInputs => {
+      wpsInstance.execute(
+        resolve,
+        identifier,
+        "document",
+        "sync",
+        false,
+        flatInputs,
+        outputs
+      );
+    });
   }).then(response => {
     return resolveResponse(response, response => response.executeResponse);
   });

@@ -3,10 +3,9 @@ import PropTypes from "prop-types";
 import Input from "./Input";
 import { InputTypes } from "./ProcessFormUtils";
 
-import LayerInput from "../LayerInput";
-
 import "./ProcessForm.css";
-import { TextIcon, LayersIcon } from "../Icons/Icons";
+import { TextIcon } from "../Icons/Icons";
+import ComplexInput from "./ComplexInput";
 
 class ProcessForm extends React.Component {
   constructor(props) {
@@ -18,29 +17,27 @@ class ProcessForm extends React.Component {
     this.inputGenerator = new window.InputGenerator();
   }
 
-  handleAddComplexData(layerId, i) {
+  handleAddComplexData(values, i) {
     const identifier = this.props.inputs[i].id;
-    let inputs = this.props.inputs.map(
-      input =>
-        input.id === identifier
-          ? Object.assign(new Input(), input, { values: [layerId] })
-          : input
+    let inputs = this.props.inputs.map(input =>
+      input.id === identifier
+        ? Object.assign(new Input(), input, { values })
+        : input
     );
 
     this.props.onChange(inputs);
   }
 
   handleAddLiteralData(event) {
-    const i = parseInt(event.currentTarget.id.replace("form-input-", ""));
+    const i = parseInt(event.currentTarget.id.replace("form-input-", ""), 10);
     const identifier = this.props.inputs[i].id;
     const { value } = event.target;
 
     const values = value ? [value] : [];
-    let inputs = this.props.inputs.map(
-      input =>
-        input.id === identifier
-          ? Object.assign(new Input(), input, { values })
-          : input
+    let inputs = this.props.inputs.map(input =>
+      input.id === identifier
+        ? Object.assign(new Input(), input, { values })
+        : input
     );
 
     this.props.onChange(inputs);
@@ -55,17 +52,12 @@ class ProcessForm extends React.Component {
             <h3>{formInput.title}</h3>
             <p>{formInput.abstractValue}</p>
             {formInput.type === InputTypes.COMPLEX ? (
-              <div>
-                <LayersIcon className="process-form-icon" />
-                <LayerInput
-                  className="layer-select"
-                  layers={layers}
-                  key={i}
-                  id={i}
-                  value={formInput.values[0]}
-                  onSelect={this.handleAddComplexData}
-                />
-              </div>
+              <ComplexInput
+                onChange={this.handleAddComplexData}
+                formInput={formInput}
+                index={i}
+                layers={layers}
+              />
             ) : (
               <div>
                 <TextIcon className="process-form-icon" />

@@ -23,12 +23,12 @@
 
 .process-form .process-form-icon {
   width: 30px;
-  padding: 13px 0;
+  padding: 8px 2px;
   vertical-align: middle;
 }
 
 .process-form .layer-select {
   display: inline-block;
-  width: calc(100% - 35px);
+  width: calc(100% - 57px);
   padding: 0 10px;
 }

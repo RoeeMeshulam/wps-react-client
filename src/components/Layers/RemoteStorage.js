@@ -15,6 +15,18 @@ export function UploadFromUrl(url) {
     .then(res => res.data.id);
 }
 
+export function UploadNonLayerFile(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  return axios
+    .post(`${layerServerPath}/api/uploadNonLayer`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    })
+    .then(res => res.data.id);
+}
+
 export function UploadFromFiles(element) {
   const formData = new FormData();
 
@@ -28,6 +40,5 @@ export function UploadFromFiles(element) {
         "Content-Type": "multipart/form-data"
       }
     })
-    .then(res => res.data.ids)
-    ;
+    .then(res => res.data.ids);
 }

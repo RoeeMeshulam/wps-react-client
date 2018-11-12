@@ -2,7 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import Select from "react-select";
 
-class LayerInput extends React.Component {
+class LayerSelector extends React.Component {
   constructor(props) {
     super(props);
 
@@ -10,20 +10,23 @@ class LayerInput extends React.Component {
   }
 
   handleSelect({ value }) {
-    this.props.onSelect(value, this.props.id);
+    this.props.onSelect(value);
   }
 
   render() {
     const { layers, className } = this.props;
-    const layerId = this.props.value;
+    const layerInput = this.props.value;
     const selectableLayers = layers.map(layer => ({
       value: layer.id,
       label: layer.displayName
     }));
+
+    const selectedLayer = layerInput ? selectableLayers.filter(l => l.value === layerInput.layerId) : null
+
     return (
       <Select
         className={className}
-        value={selectableLayers.filter(l => l.value === layerId)}
+        value={selectedLayer}
         onChange={this.handleSelect}
         options={selectableLayers}
       />
@@ -31,8 +34,8 @@ class LayerInput extends React.Component {
   }
 }
 
-LayerInput.propTypes = {
+LayerSelector.propTypes = {
   onSelect: PropTypes.func
 };
 
-export default LayerInput;
+export default LayerSelector;

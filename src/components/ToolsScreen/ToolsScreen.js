@@ -180,7 +180,10 @@ class ToolsScreen extends React.Component {
               outputs,
               isHistoryOutputs: false
             });
-            this.setState({ outputs });
+            this.setState({
+              outputs,
+              processErrorMessage: null
+            });
           })
           .catch(err => {
             console.error("Failed to add one or some layers", err);
@@ -306,11 +309,10 @@ class ToolsScreen extends React.Component {
    * @param {number} status
    */
   setQuery(queryId, record) {
-    const history = this.state.history.map(
-      rec =>
-        rec.queryId === queryId
-          ? Object.assign(new QueryRecord(), rec, record)
-          : rec
+    const history = this.state.history.map(rec =>
+      rec.queryId === queryId
+        ? Object.assign(new QueryRecord(), rec, record)
+        : rec
     );
 
     this.setHistory(history);
