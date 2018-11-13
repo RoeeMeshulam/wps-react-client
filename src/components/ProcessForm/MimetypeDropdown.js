@@ -26,6 +26,15 @@ export default class MimetypeDropdown extends React.Component {
     }
   };
 
+  getMimeTypeDsiplayName(mimeType) {
+    const mimeTypeDetails = FileFormats[mimeType];
+    if (mimeTypeDetails) {
+      return `${mimeTypeDetails.displayName} (${mimeTypeDetails.ext})`;
+    } else {
+      return mimeType;
+    }
+  }
+
   onItemClick = event => {
     const i = parseInt(
       event.currentTarget.id.replace("mimetype-menu-item-", ""),
@@ -66,7 +75,7 @@ export default class MimetypeDropdown extends React.Component {
                 className="mimetype-menu-item"
                 onClick={this.onItemClick}
               >
-                {FileFormats.hasOwnProperty(mimeType) ? FileFormats[mimeType].displayName : mimeType}
+                {this.getMimeTypeDsiplayName(mimeType)}
               </div>
             ))}
           </div>

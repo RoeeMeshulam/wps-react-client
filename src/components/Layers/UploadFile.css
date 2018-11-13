@@ -15,7 +15,7 @@
 
 .upload-files {
   position: absolute;
-  height: 50px;
+  padding-top: 20px;
   left: 3px;
   right: 3px;
   top: 3px;
@@ -24,7 +24,7 @@
 }
 
 .upload-files input {
-  position: absolute;
+  display: inline-block;
   bottom: 0;
   right: 0;
   left: 20px;
@@ -41,7 +41,7 @@
 }
 
 .upload-files .upload-button {
-  position: absolute;
+  display: inline-block;
   height: 25px;
   width: 25px;
   bottom: 7px;
@@ -53,4 +53,18 @@
 .upload-files .loading-indicator {
   width: 20px !important;
   height: 20px !important;
+}
+
+.upload-files .bbox-draw-start{
+  background-color: #EEE;
+    border: none;
+    display: block;
+    margin: 5px;
+    width: calc(100% - 11px);
+    border-radius: 5px;
+}
+
+.upload-files .or-label{
+  padding: 4px;
+  text-align: center;
 }

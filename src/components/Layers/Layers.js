@@ -2,10 +2,13 @@ import React, { Component } from "react";
 
 import "./Layers.css";
 import { UploadFromUrl, GetLayerUrlFromId } from "./RemoteStorage";
-import { LayersIcon } from "../Icons/Icons";
-import Checkbox from "./checkbox";
+import { LayersIcon, BoundingBoxIcon } from "../Icons/Icons";
 import axios from "axios";
 import UploadFile from "./UploadFile";
+import LayerTypes from '../../common/LayerTypes'
+
+import "leaflet-draw/dist/leaflet.draw.css";
+import CheckableItem from "./CheckableItem";
 
 export default class Layers extends Component {
   constructor(props) {
@@ -16,7 +19,8 @@ export default class Layers extends Component {
   }
   state = {
     highlighted: {},
-    layersList: []
+    layersList: [],
+    bboxList: []
   };
 
   componentDidMount() {
@@ -29,16 +33,20 @@ export default class Layers extends Component {
   }
 
   fetchLayersList() {
-    let layersList;
+    let layersList, bboxList;
     try {
-      layersList = JSON.parse(localStorage.getItem("LayersList"));
-      if (!Array.isArray(layersList)) layersList = [];
+      const data = JSON.parse(localStorage.getItem("LayersList"));
+      bboxList = data.bboxList;
+      layersList = data.layersList;
+
+      layersList.forEach(layer => (layer.displayed = false));
+      bboxList.forEach(bbox => (bbox.displayed = false));
     } catch (err) {
-      this.props.alert.error("Failed to load layers");
       layersList = [];
+      bboxList = [];
     }
-    layersList.forEach(layer => (layer.displayed = false));
-    this.setState({ layersList: layersList });
+
+    this.setState({ layersList, bboxList });
   }
 
   setHighlightedLayer(layerId, isHighlighted) {
@@ -77,12 +85,16 @@ export default class Layers extends Component {
     const layersList = this.state.layersList.concat(nonExistingLayers);
 
     this.setState({ layersList });
-
     layersToAdd.map(({ id }) => this.highlight(id));
+    this.saveToLocalStorage(layersList, this.state.bboxList);
+  }
 
+  saveToLocalStorage(layersList, bboxList) {
+    layersList.map(({ name, id }) => ({ name, id }));
+    bboxList.map(({ id, name, box }) => ({ id, name, box }));
     localStorage.setItem(
       "LayersList",
-      JSON.stringify(layersList.map(({ name, id }) => ({ name, id })))
+      JSON.stringify({ layersList, bboxList })
     );
   }
 
@@ -103,13 +115,13 @@ export default class Layers extends Component {
       axios
         .get(GetLayerUrlFromId(layer.id))
         .then(({ data }) => data)
-        .then(geojson => this.props.addLayerToMap(layer.id, geojson));
+        .then(geojson => this.props.addLayerToMap(layer.id,LayerTypes.GEO_JSON, geojson));
     } else {
       this.props.removeLayerFromMap(layer.id);
     }
 
-    const layersList = this.state.layersList.map(
-      layer => (layer.id === layerId ? newLayer : layer)
+    const layersList = this.state.layersList.map(layer =>
+      layer.id === layerId ? newLayer : layer
     );
     this.setState({ layersList });
   }
@@ -126,28 +138,71 @@ export default class Layers extends Component {
     });
   }
 
+  addBoundingBox = bbox => {
+    const bboxList = this.state.bboxList.concat([
+      {
+        box: bbox,
+        name: "Bounding Box",
+        id: Math.random()
+          .toString(36)
+          .substring(7)
+      }
+    ]);
+    this.setState({ bboxList });
+    this.saveToLocalStorage(this.state.layersList, bboxList);
+  };
+
+  toggleBbox = bboxId => {
+    let bbox = this.state.bboxList.filter(bbox => bbox.id === bboxId)[0];
+    bbox = { ...bbox, displayed: !bbox.displayed };
+
+    if (bbox.displayed) {
+        this.props.addLayerToMap(bbox.id, LayerTypes.BOUNDING_BOX, bbox.box);
+    } else {
+      this.props.removeLayerFromMap(bbox.id);
+    }
+
+    const bboxList = this.state.bboxList.map(b =>
+      b.id === bboxId ? bbox : b
+    );
+    this.setState({ bboxList });
+  };
   render() {
+    const { setDrawRectange, drawedRectange } = this.props;
     return (
       <div className="layers">
         <h3 className="title">
           <LayersIcon className="layers-icon" />
           <span>Layers</span>
         </h3>
-        <UploadFile concatLayers={this.concatLayers} />
+        <UploadFile
+          concatLayers={this.concatLayers}
+          addBoundingBox={this.addBoundingBox}
+          setDrawRectange={setDrawRectange}
+          drawedRectange={drawedRectange}
+        />
         {this.state.layersList.map(layer => (
-          <div
-            className={`layer ${
-              this.state.highlighted[layer.id] ? "highlighted" : ""
-            }`}
+          <CheckableItem
+            highlight={!!this.state.highlighted[layer.id]}
+            data={layer.id}
+            onClick={this.toggleLayer}
+            content={layer.name}
+            value={layer.displayed}
             key={layer.id}
-          >
-            <Checkbox
-              isDisplayed={layer.displayed}
-              onClick={this.toggleLayer}
-              identifier={layer.id}
-            />
-            <span>{layer.name}</span>
-          </div>
+          />
+        ))}
+        <h3 className="title">
+          <BoundingBoxIcon className="layers-icon" />
+          <span>Bounding Boxes</span>
+        </h3>
+        {this.state.bboxList.map(bbox => (
+          <CheckableItem
+            data={bbox.id}
+            onClick={this.toggleBbox}
+            content={bbox.name}
+            value={bbox.displayed}
+            key={bbox.id}
+          />
         ))}
       </div>
     );

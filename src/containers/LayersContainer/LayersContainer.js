@@ -9,7 +9,8 @@ import {
 
 function mapDispatchToProps(dispatch) {
   return {
-    addLayerToMap: (id, data) => dispatch(createAddLayerAction(id, data)),
+    addLayerToMap: (id, layerType, data) =>
+      dispatch(createAddLayerAction(id, layerType, data)),
     removeLayerFromMap: id => dispatch(createRemoveLayerAction(id))
   };
 }

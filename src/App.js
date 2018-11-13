@@ -5,7 +5,10 @@ import ToolsScreen from "./components/ToolsScreen";
 import Layers from "./containers/LayersContainer";
 
 import "./App.css";
-import { setQueryHistory, getQueryHistory } from "./common/utils/queryHistoryStorage";
+import {
+  setQueryHistory,
+  getQueryHistory
+} from "./common/utils/queryHistoryStorage";
 
 class App extends Component {
   constructor() {
@@ -15,6 +18,9 @@ class App extends Component {
     this.zoomToLayer = this.zoomToLayer.bind(this);
     this.getLayers = this.getLayers.bind(this);
   }
+  state = {
+    isDrawing: false
+  };
 
   getLayers(layer) {
     return this.layers.getLayers(layer);
@@ -26,12 +32,31 @@ class App extends Component {
     this.layers.zoomToLayer(layer);
   }
 
+  setDrawRectange = isDrawingRectange => {
+    this.setState({ isDrawingRectange });
+    if (!isDrawingRectange) {
+      this.setState({ drawedRectange: null });
+    }
+  };
+  onDrawingDone = box => {
+    this.setState({ drawedRectange: box });
+    // this.layers.doneDrawingRectange(box);
+  };
+
   render() {
+    const { drawedRectange } = this.state;
     return (
       <div className="root">
         <div className="screen-left">
-          <Layers onRef={ref => (this.layers = ref)} />
-          <Map />
+          <Layers
+            onRef={ref => (this.layers = ref)}
+            setDrawRectange={this.setDrawRectange}
+            drawedRectange={drawedRectange}
+          />
+          <Map
+            isDrawingRectange={this.state.isDrawingRectange}
+            onDrawingDone={this.onDrawingDone}
+          />
         </div>
         <div className="screen-right">
           <ToolsScreen
