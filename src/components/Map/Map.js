@@ -4,11 +4,20 @@ import {
   Map as LeafletMap,
   TileLayer,
   GeoJSON,
-  Rectangle
+  Rectangle,
+  Popup
 } from "react-leaflet";
 import L from "leaflet";
 import { tileLayerTemplate } from "../../config";
 import LayerTypes from "../../common/LayerTypes";
+import { popupFormat } from "../../common/utils/featuePopup";
+import tryParseFloat from "../../common/utils/tryParseFloat";
+
+const sizes = {
+  small: 4,
+  medium: 8,
+  large: 12
+};
 
 class MapComponent extends React.Component {
   static getDerivedStateFromProps(props, state) {
@@ -20,6 +29,7 @@ class MapComponent extends React.Component {
   }
 
   state = {
+    popup: null,
     lat: 31.84,
     lng: 34.84,
     zoom: 7,
@@ -41,19 +51,56 @@ class MapComponent extends React.Component {
     window.removeEventListener("resize", this.updateDimensions);
   }
 
-  pointToLayer(feature, latlng) {
-    // renders our GeoJSON points as circle markers, rather than Leaflet's default image markers
-    // parameters to style the GeoJSON markers
-    const markerParams = {
-      radius: 4,
-      fillColor: "black",
-      color: "#fff",
-      weight: 0,
-      fillOpacity: 1
-    };
+  onClick_Marker = e => {
+    console.log(e);
+    const fp = e.target.feature.properties || {};
+    this.setState({
+      popup: {
+        id: Math.random()
+          .toString(36)
+          .substring(7),
+        position: e.latlng,
+        ...popupFormat(fp)
+      }
+    });
+  };
 
-    return L.circleMarker(latlng, markerParams);
-  }
+  pointToLayer = (f, latlon) => L.circleMarker(latlon, {});
+
+  // Symology based on simplestyle-spec v1.1.0 of MapBox
+  // https://github.com/mapbox/simplestyle-spec/tree/master/1.1.0
+  featureStyle = feature => {
+    const fp = feature.properties || {};
+    const fg = feature.geometry || {};
+    if (fg.type === "MultiPoint" || fg.type === "Point") {
+      const size = fp["marker-size"] || "medium";
+      // const symbol = fp["marker-symbol"] ? "-" + fp["marker-symbol"] : "";
+      const color = fp["marker-color"] || "#7e7e7e";
+      return {
+        radius: sizes[size],
+        fillColor: color,
+        weight: 0,
+        fillOpacity: 1
+      };
+    } else {
+      const stroke = fp["stroke"] || "#555555";
+      const strokeOpacity = tryParseFloat(fp["stroke-opacity"], 1);
+      const strokeWidth = tryParseFloat(fp["stroke-width"], 2);
+      const fill = fp["fill"] || "#555555";
+      const fillOpacity = tryParseFloat(fp["fill-opacity"], 0.6);
+      return {
+        color: stroke,
+        weight: strokeWidth,
+        opacity: strokeOpacity,
+        fillColor: fill,
+        fillOpacity
+      };
+    }
+  };
+
+  onEachFeature = (feature, layer) => {
+    layer.on("click", this.onClick_Marker);
+  };
 
   onMouseDown = ({ latlng }) => {
     if (this.props.isDrawingRectange) {
@@ -95,7 +142,7 @@ class MapComponent extends React.Component {
   render() {
     const position = [this.state.lat, this.state.lng];
     const { isDrawingRectange } = this.props;
-    const { drawData } = this.state;
+    const { drawData, popup } = this.state;
     const drawedRectangle =
       isDrawingRectange && drawData ? (
         <Rectangle
@@ -111,9 +158,10 @@ class MapComponent extends React.Component {
     );
     const rectangles = this.props.layers
       .filter(({ layerType }) => layerType === LayerTypes.BOUNDING_BOX)
-      .map(({ data: { west, east, south, north } }) =>
-        L.latLngBounds(L.latLng(south, west), L.latLng(north, east))
-      );
+      .map(({ id, data: { west, east, south, north } }) => ({
+        bounds: L.latLngBounds(L.latLng(south, west), L.latLng(north, east)),
+        id
+      }));
     return (
       <div>
         <LeafletMap
@@ -130,12 +178,27 @@ class MapComponent extends React.Component {
         >
           <TileLayer url={tileLayerTemplate} />
           {geoJsons.map(layer => (
-            <GeoJSON data={layer.data} pointToLayer={this.pointToLayer} />
+            <GeoJSON
+              key={layer.id}
+              data={layer.data}
+              style={this.featureStyle}
+              pointToLayer={this.pointToLayer}
+              onEachFeature={this.onEachFeature}
+            />
           ))}
-          {rectangles.map(rec => (
-            <Rectangle bounds={rec} />
+          {rectangles.map(({ id, bounds }) => (
+            <Rectangle key={id} bounds={bounds} />
           ))}
           {drawedRectangle}
+          {popup ? (
+            <Popup key={popup.id} position={popup.position}>
+              <div>
+                <h3>{popup.title}</h3>
+                <p>{popup.description}</p>
+                <table>{popup.rows}</table>
+              </div>
+            </Popup>
+          ) : null}
         </LeafletMap>
       </div>
     );
