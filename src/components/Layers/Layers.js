@@ -7,7 +7,6 @@ import axios from "axios";
 import UploadFile from "./UploadFile";
 import LayerTypes from '../../common/LayerTypes'
 
-import "leaflet-draw/dist/leaflet.draw.css";
 import CheckableItem from "./CheckableItem";
 
 export default class Layers extends Component {

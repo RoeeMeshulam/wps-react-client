@@ -4,6 +4,8 @@ import Map from "./containers/MapContainer";
 import ToolsScreen from "./components/ToolsScreen";
 import Layers from "./containers/LayersContainer";
 
+//import WpsController from "../node_modules/wps-controller/src/index";
+
 import "./App.css";
 import {
   setQueryHistory,
