@@ -20,12 +20,12 @@ export default class ComplexInput extends React.Component {
   // will set the first format in initializing too.
   static getDerivedStateFromProps(props, state) {
     const { currentMimeType } = state;
-    const format = props.formInput.formats.filter(
+    const format = props.formInput.dataType.formats.filter(
       ({ mimeType }) => mimeType === currentMimeType
     )[0];
 
     if (!format) {
-      return { currentMimeType: props.formInput.formats[0].mimeType };
+      return { currentMimeType: props.formInput.dataType.formats[0].mimeType };
     } else {
       return null;
     }
@@ -59,7 +59,7 @@ export default class ComplexInput extends React.Component {
         <MimetypeDropdown
           index={index}
           onChange={this.setFormat}
-          options={formInput.formats}
+          options={formInput.dataType.formats}
         />
         {isLayer ? (
           <LayerSelector

@@ -1,8 +1,10 @@
 import React, { Component } from "react";
+import { withAlert } from "react-alert";
+import WpsController from "wps-controller";
 
 import Map from "./containers/MapContainer";
-import ToolsScreen from "./components/ToolsScreen";
 import Layers from "./containers/LayersContainer";
+
 
 import "./App.css";
 import {
@@ -59,7 +61,8 @@ class App extends Component {
           />
         </div>
         <div className="screen-right">
-          <ToolsScreen
+          <WpsController
+            showAlert={this.props.alert.error}
             addLayer={this.addLayer}
             setQueryHistory={setQueryHistory}
             getQueryHistory={getQueryHistory}
@@ -73,4 +76,4 @@ class App extends Component {
   }
 }
 
-export default App;
+export default withAlert(App);

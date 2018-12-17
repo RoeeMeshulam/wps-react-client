@@ -37,6 +37,8 @@ class MapComponent extends React.Component {
     drawData: null
   };
 
+  bounds = L.latLngBounds(L.latLng(-90, -180), L.latLng(90, 180));
+
   updateDimensions = () => {
     const height = window.innerHeight;
     this.setState({ height: height });
@@ -139,6 +141,13 @@ class MapComponent extends React.Component {
     }
   };
 
+  lockingLeafletParams = () => ({
+    dragging: !this.props.isDrawingRectange,
+    touchZoom: !this.props.isDrawingRectange,
+    doubleClickZoom: !this.props.isDrawingRectange,
+    scrollWheelZoom: !this.props.isDrawingRectange
+  });
+
   render() {
     const position = [this.state.lat, this.state.lng];
     const { isDrawingRectange } = this.props;
@@ -171,10 +180,9 @@ class MapComponent extends React.Component {
           onmousedown={this.onMouseDown}
           onmouseup={this.onMouseUp}
           onmousemove={this.onMouseMove}
-          dragging={!isDrawingRectange}
-          touchZoom={!isDrawingRectange}
-          doubleClickZoom={!isDrawingRectange}
-          scrollWheelZoom={!isDrawingRectange}
+          maxBounds={this.bounds}
+          minZoom={3}
+          {...this.lockingLeafletParams()}
         >
           <TileLayer url={tileLayerTemplate} />
           {geoJsons.map(layer => (

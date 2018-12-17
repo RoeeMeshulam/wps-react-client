@@ -8,8 +8,8 @@ export function generateInputsFromDescription(process) {
   return process.inputs.map(input => {
     const { abstractValue, title, identifier, minOccurs, maxOccurs } = input;
     const [type, formats] = input.hasOwnProperty("complexData")
-      ? [InputTypes.COMPLEX, input.complexData.formats]
-      : [InputTypes.LITERAL, undefined]
+      ? [InputTypes.COMPLEX, input.complexData]
+      : [InputTypes.LITERAL, input.literalData]
 
     return new Input(
       identifier,

@@ -4,8 +4,8 @@ import Input from "./Input";
 import { InputTypes } from "./ProcessFormUtils";
 
 import "./ProcessForm.css";
-import { TextIcon } from "../Icons/Icons";
 import ComplexInput from "./ComplexInput";
+import LiteralInput from "./LiteralInput";
 
 class ProcessForm extends React.Component {
   constructor(props) {
@@ -13,7 +13,6 @@ class ProcessForm extends React.Component {
 
     this.inputValues = [];
     this.handleAddComplexData = this.handleAddComplexData.bind(this);
-    this.handleAddLiteralData = this.handleAddLiteralData.bind(this);
     this.inputGenerator = new window.InputGenerator();
   }
 
@@ -28,12 +27,10 @@ class ProcessForm extends React.Component {
     this.props.onChange(inputs);
   }
 
-  handleAddLiteralData(event) {
-    const i = parseInt(event.currentTarget.id.replace("form-input-", ""), 10);
+  handleAddLiteralData = (i,value) => {
     const identifier = this.props.inputs[i].id;
-    const { value } = event.target;
 
-    const values = value ? [value] : [];
+    const values = value !== undefined ? [value] : [];
     let inputs = this.props.inputs.map(input =>
       input.id === identifier
         ? Object.assign(new Input(), input, { values })
@@ -41,7 +38,7 @@ class ProcessForm extends React.Component {
     );
 
     this.props.onChange(inputs);
-  }
+  };
 
   render() {
     const { inputs, layers, onSubmit } = this.props;
@@ -59,17 +56,12 @@ class ProcessForm extends React.Component {
                 layers={layers}
               />
             ) : (
-              <div>
-                <TextIcon className="process-form-icon" />
-                <input
-                  className="literal-text-input"
-                  key={formInput.identifier}
-                  onChange={this.handleAddLiteralData}
-                  value={formInput.values[0]}
-                  id={`form-input-${i}`}
-                  type="text"
-                />
-              </div>
+              <LiteralInput
+                i={i}
+                dataType={formInput.dataType}
+                onChange={this.handleAddLiteralData}
+                value={formInput.values[0]}
+              />
             )}
           </div>
         ))}
