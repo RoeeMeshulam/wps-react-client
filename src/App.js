@@ -5,7 +5,6 @@ import WpsController from "wps-controller";
 import Map from "./containers/MapContainer";
 import Layers from "./containers/LayersContainer";
 
-
 import "./App.css";
 import {
   setQueryHistory,
